@@ -7,10 +7,8 @@ import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
 
 
 
-export default function ActiveCamera({uuidCam, nameCam, locationCam}:{uuidCam:string, nameCam: string, locationCam: string}): ReactElement{
-    const uuid = uuidCam
-    const name = nameCam
-    const location = locationCam
+export default function ActiveCamera(props:{activeCam: CameraType}): ReactElement{
+    const {uuid, location, name} = props.activeCam
     
     // * zustand stores
     const webSocket = useWebSocketStore()

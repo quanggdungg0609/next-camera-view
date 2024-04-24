@@ -142,7 +142,7 @@ export default function CameraView() {
             "
         >
             <div className="w-full lg:w-3/4 bg-blue-500 ">
-                { activeCam != undefined ? <ActiveCamera nameCam={activeCam.name} locationCam={activeCam.location} uuidCam={activeCam.uuid}/> :
+                { activeCam != undefined ? <ActiveCamera activeCam={activeCam}/> :
                     <h1>
                         No Camera Connect
                     </h1>
