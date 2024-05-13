@@ -1,12 +1,21 @@
 import {create} from "zustand";
 import { Subject } from "rxjs";
+import { list } from "postcss";
+import { headers } from "next/headers";
+
+interface ICamera {
+    camera: ICameraInfo
+    sdp?: RTCSessionDescription
+}
 
 interface WebSocketStore {
     ws?: WebSocket,
     subject: Subject<WSEvent>,
     isConnected: boolean,
+    cameraQueue: ICameraInfo[],
     connect: (url:string)=> void
     send: (message: any)=> void
+    disconnect:()=> void
 }
 
 export interface WSEvent{
@@ -19,8 +28,12 @@ export const useWebSocketStore = create<WebSocketStore>(
         ws: undefined,
         isConnected: false,
         subject: new Subject<WSEvent>(),
+        cameraQueue:[],
         connect: (url:string) => {
-            const ws = new WebSocket(url);
+            document.cookie = "Authorization= "
+            const ws = new WebSocket(url,
+                ["Authorization", "your_token_here"]
+            );
             
             ws.addEventListener("open",()=>{
                 set({ws, isConnected:true})
@@ -32,13 +45,62 @@ export const useWebSocketStore = create<WebSocketStore>(
 
             //* Event handler
             ws.addEventListener("message", (event: MessageEvent) => {
-                set((state)=>{
-                    const message:WSEvent= JSON.parse(event.data)
+                const message:WSEvent= JSON.parse(event.data)
+                switch(message.event){
+                    case "camera-connect":
+                        const camInfo: ICameraInfo={
+                            uuid: message.data.uuid as string,
+                            name: message.data.name as string,
+                            location: message.data.location as string
+                        }
+                        
+                        // const newCam: ICamera={
+                        //     camera: camInfo,
+                        // } 
+                        console.log(camInfo)
+                        set((state)=>{ 
+                            return {cameraQueue: [...state.cameraQueue, camInfo]}})
+                        break
+                    case "camera-disconnect":
+                        set((state)=>({...state, cameraQueue: state.cameraQueue.filter((item)=>item.uuid !== message.data.uuid)}))
+                        break    
 
-                    state.subject.next(message)
-                    return state
-                })
-                
+                    case "response-list-cameras":
+                            if (Array.isArray(message.data)) {
+                                const listCamera: Array<ICameraInfo> = message.data;
+                                // console.log(typeof listCamera)
+                                // const  newCamQueueState: ICamera[]= []
+                                
+                                // listCamera.forEach((camera) => {
+                                //     const newCam: ICamera ={ camera: camera, sdp: undefined }
+                                //     newCamQueueState.push(newCam);
+                                // });
+                                
+                                set((state)=>({...state, cameraQueue: listCamera}))
+                                // ... rest of your code using listCamera
+                            }
+                            break
+
+                    // case "answer-sd":
+                    //     const  answerSd:RTCSessionDescription = new RTCSessionDescription(
+                    //         {
+                    //             type: message.data.type, 
+                    //             sdp: message.data.sdp,
+                    //         }
+                    //     )
+                    //     set((state) => ({
+                    //         ...state,
+                    //         cameraQueue: state.cameraQueue.map((camera) =>
+                    //             camera.camera.uuid === message.data.from ? { camera: camera.camera, sdp: answerSd  } : camera
+                    //         ),
+                    //     }))
+                    
+                    default:
+                        set((state)=>{
+                            state.subject.next(message)
+                            return state
+                        })
+                }
             });
             
         },
@@ -50,6 +112,12 @@ export const useWebSocketStore = create<WebSocketStore>(
                 return state
             })
         },
+        disconnect:()=>{
+            set((prevState)=>{
+                prevState.ws!.close()
+                return {...prevState, ws: undefined, }
+            })
+        }
     })
 );
 

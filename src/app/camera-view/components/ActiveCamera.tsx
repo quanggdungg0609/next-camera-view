@@ -7,10 +7,8 @@ import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
 
 
 
-export default function ActiveCamera({uuidCam, nameCam, locationCam}:{uuidCam:string, nameCam: string, locationCam: string}): ReactElement{
-    const uuid = uuidCam
-    const name = nameCam
-    const location = locationCam
+export default function ActiveCamera(props:{activeCam: ICameraInfo}): ReactElement{
+    const {uuid, location, name} = props.activeCam
     
     // * zustand stores
     const webSocket = useWebSocketStore()
@@ -18,8 +16,7 @@ export default function ActiveCamera({uuidCam, nameCam, locationCam}:{uuidCam:st
     // * hooks
     const {createPeerConnection, addRemoteSD, closeConnection, stream, localSD} = useWebRTC()
 
-    // * states
-    const [activeStream, setActiveStream] = useState<boolean>(false)
+    const [activeCamera, setActiveCamera] = useState<ICameraInfo>()
 
     // * refs
     const videoRef = useRef<HTMLVideoElement>(null)
@@ -34,27 +31,28 @@ export default function ActiveCamera({uuidCam, nameCam, locationCam}:{uuidCam:st
                             sdp: message.data.sdp,
                         }
                     )
-                    console.log(answerSd)
-                    await addRemoteSD(answerSd)
-                    break
-                case "ice-candidate":
+                    addRemoteSD(answerSd)
                     break
                 default:
                     break
             }
         })
 
-        return ()=>{
-            if(activeStream){
-                closeConnection()
-            }
-            webSocketSubcription.unsubscribe()
+        setActiveCamera(props.activeCam)
 
+        return ()=>{
+            webSocketSubcription.unsubscribe()
         }
     },[])
 
     useEffect(()=>{
+        if(activeCamera && activeCamera.uuid !== props.activeCam.uuid){
+            closeConnection()
+            setActiveCamera(props.activeCam)
+        }
+    },[props.activeCam])
 
+    useEffect(()=>{
         if(stream && videoRef.current){
             videoRef.current.srcObject = stream
         } else if(!stream && videoRef.current){
@@ -64,16 +62,14 @@ export default function ActiveCamera({uuidCam, nameCam, locationCam}:{uuidCam:st
 
     useEffect(()=>{
         async function handleActiveStreamState(){
-            if(activeStream){
                 await createPeerConnection()
-            }else{
-                if(stream){
-                    closeConnection()
-                }
-            }
         }
-        handleActiveStreamState()
-    },[activeStream])
+        if(activeCamera){
+            handleActiveStreamState()
+        }
+    },[activeCamera])
+
+    
 
     useEffect(()=>{
         if(localSD){
@@ -89,13 +85,7 @@ export default function ActiveCamera({uuidCam, nameCam, locationCam}:{uuidCam:st
         }
     },[localSD])
     
-    async function handleActiveStreamView(){
-        setActiveStream(true)
-    }
-
-    async function handleStopStreamView(){
-        setActiveStream(false)
-    }
+    
 
     return (
         <>
@@ -129,7 +119,7 @@ export default function ActiveCamera({uuidCam, nameCam, locationCam}:{uuidCam:st
                     <div
                         className="w-1/2 h-full flex flex-wrap justify-end  items-center"
                     >
-                        { 
+                        {/* { 
                             !activeStream ?
                                 <button type="button" 
                                     className="focus:outline-none text-white bg-green-700 hover:bg-green-800 
@@ -148,7 +138,7 @@ export default function ActiveCamera({uuidCam, nameCam, locationCam}:{uuidCam:st
                                     Stop
                                 </button>
                         
-                        }
+                        } */}
                     </div>
             </div>
         </>

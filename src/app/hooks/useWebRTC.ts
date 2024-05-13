@@ -1,6 +1,4 @@
-import { resolve } from "path"
-import {useEffect, useState, useCallback} from "react"
-import { Subject } from "rxjs"
+import {useEffect, useState} from "react"
 
 const iceServerConfig ={
     sdpSemantics: 'unified-plan',
@@ -31,10 +29,10 @@ export function useWebRTC(){
 				closeConnection()
 			}
 		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	},[])
 
 	useEffect(()=>{
-		console.log(peerConnection)
 		async function setSDP(){
             if (peerConnection && remoteSD){
                 try{
@@ -45,6 +43,7 @@ export function useWebRTC(){
             }
         }
 		setSDP()
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	},[remoteSD])
 
 	useEffect(()=>{
@@ -53,18 +52,21 @@ export function useWebRTC(){
 				reset()
 			}
 		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	},[iceConnectionState])
 
 	useEffect(()=>{
 		if(peerConnection && connectionState ==="failed"){
 			reset()
 		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	},[connectionState])
 
 	useEffect(()=>{
 		if(peerConnection && signalingState ==="closed"){
 			reset()
 		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	},[signalingState])
 
 	async function createPeerConnection(){
@@ -115,7 +117,7 @@ export function useWebRTC(){
 		}
 	}
 
-	async function addRemoteSD(sd: RTCSessionDescription){
+	function addRemoteSD(sd: RTCSessionDescription){
 		setRemoteSD(sd)
 	}
 
