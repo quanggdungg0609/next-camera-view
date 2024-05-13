@@ -1,9 +1,16 @@
 import {create} from "zustand";
+import { Subject } from "rxjs";
+import { list } from "postcss";
+import { headers } from "next/headers";
 
-
+interface ICamera {
+    camera: ICameraInfo
+    sdp?: RTCSessionDescription
+}
 
 interface WebSocketStore {
     ws?: WebSocket,
+    subject: Subject<WSEvent>,
     isConnected: boolean,
     cameraQueue: ICameraInfo[],
     connect: (url:string)=> void
@@ -20,6 +27,7 @@ export const useWebSocketStore = create<WebSocketStore>(
     (set) => ({
         ws: undefined,
         isConnected: false,
+        subject: new Subject<WSEvent>(),
         cameraQueue:[],
         connect: (url:string) => {
             document.cookie = "Authorization= "
@@ -89,6 +97,7 @@ export const useWebSocketStore = create<WebSocketStore>(
                     
                     default:
                         set((state)=>{
+                            state.subject.next(message)
                             return state
                         })
                 }

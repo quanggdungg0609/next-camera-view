@@ -19,8 +19,8 @@ export default function CameraView() {
     
 
     useEffect(()=>{
-        console.log(process.env.WS_URI)
-        connect("wss://acces.lanestel.fr:5050")
+
+        connect(process.env.WS_URI!)
     
         return()=>{
             
