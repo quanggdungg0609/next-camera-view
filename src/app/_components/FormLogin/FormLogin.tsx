@@ -7,15 +7,12 @@ import FormItem from "antd/es/form/FormItem";
 import { useFormik } from "formik";
 import { object, string } from "yup";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
-import { useAppStore } from '@/app/zustand/useAppStore';
+import { useAppStore } from '@/app/_zustand/useAppStore';
 
-import { loginAsyncServer,deleteToken } from "@/app/utils/server_function"
+import { loginAsyncServer,deleteToken } from "@/app/_utils/server_function"
 import { useRouter } from 'next/navigation';
+import { LoginValues } from './types';
 
-interface LoginValues {
-    account: string
-    password: string
-}
 
 const initialValues = {
     account: "",
@@ -53,38 +50,37 @@ const loginSchema= object().shape({
 export default function FormLogin( ) {
     const {login} = useAppStore()
     const router = useRouter()
-    const [api, contextHolder] = notification.useNotification()
+    const [noti, contextHolder] = notification.useNotification()
     const [openModal, setOpenModal] = useState<boolean>(false)
 
-    useEffect(()=>{
-        deleteToken()
-    },[])
+    
     
     const formik = useFormik({
         initialValues:initialValues,
         onSubmit: async (value: LoginValues)=>{
-            // ! Call api here
+                // ! Call api here
                 setOpenModal(true)
                 const data = await loginAsyncServer(value.account, value.password)
 
                 if(data?.error){
                     setOpenModal(false)
-                    api.error({
+                    noti.error({
                         message:data.error.message
                     })
                 }else{
                     login(data!.userName,data!.email, data!.role)
                     setOpenModal(false)
                     router.push("/camera-view")
-                }
-            
-                
-                
-                
-            
+                }        
         },
         validationSchema:loginSchema
     })
+
+    //! Will be remove soon
+    useEffect(()=>{
+        deleteToken()
+    },[])
+
     return (
                 <Form 
                     method='POST'

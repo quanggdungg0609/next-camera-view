@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { useWebSocketStore } from "../zustand/useWebSocketStore";
-import { useAppStore } from "../zustand/useAppStore";
+import { useWebSocketStore } from "../_zustand/useWebSocketStore";
+import { useAppStore } from "../_zustand/useAppStore";
 import ActiveCamera from "./components/ActiveCamera";
 import ListCamera from "./components/ListCamera";
 
