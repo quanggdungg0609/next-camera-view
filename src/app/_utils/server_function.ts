@@ -42,6 +42,31 @@ export async function loginAsyncServer(account: string, password: string){
     }
 }
 
+
+export async function register(username: string, email: string, password:string){
+    try{
+        const response = await axios.post(`${serverRuntimeConfig.API_URI}/api/auth/signup`,{
+            username: username,
+            email:email,
+            password: password
+        })
+
+        if(response.status===201){
+            return {
+                message: response.data.message
+            }
+        }
+    }catch(exception){
+        if (axios.isAxiosError(exception)){
+            const message = exception.response?.data.message
+            console.log(message)
+            return {
+                error: message
+            }
+        }
+    }
+}
+
 export async function deleteToken(){
     try{
         const cookieStore =cookies()
@@ -68,7 +93,6 @@ export async function obtainNewAccessToken(){
                 case 200:
                     const accessToken = response.data.access_token
                     return accessToken
-                    
                 case 400:
                     return { error: "Refresh Token Expired"}
                 case 401:
@@ -83,7 +107,6 @@ export async function obtainNewAccessToken(){
         }
     }catch(exception){
         console.error(exception)
-        throw exception
     }
 }
 
@@ -100,7 +123,7 @@ function encryptToken(token:string): string{
 function decryptToken(encryptedToken:string): string{
     const key = crypto.createHash('sha256').update(serverRuntimeConfig.SECRET_KEY).digest();
     const parts = encryptedToken.split(':');
-    const iv = Buffer.from(parts.shift()!, 'hex'); // Chuyển IV từ hex sang Buffer
+    const iv = Buffer.from(parts.shift()!, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key), iv);
     let decryptedToken = decipher.update(parts.join(':'), 'hex', 'utf8');
     decryptedToken += decipher.final('utf8');

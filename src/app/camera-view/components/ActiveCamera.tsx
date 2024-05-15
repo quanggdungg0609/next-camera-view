@@ -1,6 +1,6 @@
-import { useWebRTC } from "@/app/hooks/useWebRTC";
-import { useAppStore } from "@/app/zustand/useAppStore";
-import { useWebSocketStore } from "@/app/zustand/useWebSocketStore";
+import { useWebRTC } from "@/app/_hooks/useWebRTC";
+import { useAppStore } from "@/app/_zustand/useAppStore";
+import { useWebSocketStore } from "@/app/_zustand/useWebSocketStore";
 import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
 
 
