@@ -1,11 +1,62 @@
 "use server"
-import axios, { AxiosRequestConfig } from "axios"
+import axios, { AxiosError, AxiosRequestConfig } from "axios"
 import { cookies } from "next/headers"
 import getConfig from 'next/config';
 import crypto from "crypto";
-
+import { error } from "console";
+import {TokenNotFound, SessionExpired} from "./exceptions"
+import { redirect } from "next/navigation";
 
 const { serverRuntimeConfig }= getConfig()
+
+
+// axios configs
+const axiosInstanceWithAccessToken = axios.create({
+    baseURL: serverRuntimeConfig.API_URI
+})
+
+axiosInstanceWithAccessToken.interceptors.request.use(
+    async (config)=>{
+        const cookiesStore = cookies()
+        const hashAccessToken = cookiesStore.get("access")?.value
+        if (hashAccessToken){
+            const accessToken = decryptToken(hashAccessToken)
+            config.headers["Authorization"] = `Bearer ${accessToken}`
+        }else{
+            try{
+                const accessToken = await getNewAccesToken()
+                config.headers["Authorization"] = `Bearer ${accessToken}`
+            }catch(exception){
+                throw exception
+            }
+        }
+        return config
+    },
+    (error)=>{
+        throw error
+    }
+)
+
+const axiosInstanceWithRefreshToken = axios.create({
+    baseURL: serverRuntimeConfig.API_URI
+})
+
+
+axiosInstanceWithRefreshToken.interceptors.request.use(
+    (config)=>{
+        const cookiesStore = cookies()
+        const hashRefreshToken = cookiesStore.get("refresh")?.value
+        if(!hashRefreshToken){
+            throw new SessionExpired()
+        }
+        const refreshToken = decryptToken(hashRefreshToken)
+        config.headers["Authorization"] = `Bearer ${refreshToken}`
+        return config
+    },
+    (error)=>{
+        return Promise.reject(error)
+    }
+)
 
 export async function loginAsyncServer(account: string, password: string){
     try{
@@ -15,17 +66,29 @@ export async function loginAsyncServer(account: string, password: string){
         })
         if(res.status === 200){
             const {userName, email, role, access_token, refresh_token } = res.data
+            const accessExpiryDate = new Date();
+            accessExpiryDate.setMinutes(accessExpiryDate.getMinutes() + 15);
+
+            const refreshExpiryDate = new Date();
+            refreshExpiryDate.setDate(refreshExpiryDate.getDate() + 1);
             cookies().set({
                 name:"access",
                 value: encryptToken(access_token),
                 httpOnly:true,
+                expires:accessExpiryDate
             })
             cookies().set({
                 name:"refresh",
                 value: encryptToken(refresh_token),
                 httpOnly:true,
+                expires:refreshExpiryDate
             })
 
+            cookies().set({
+                name:"role",
+                value: role,
+                httpOnly: true
+            })
             return {
                 userName: userName,
                 email: email,
@@ -72,48 +135,82 @@ export async function deleteToken(){
         const cookieStore =cookies()
         cookieStore.delete("access")
         cookieStore.delete("refresh")
+        cookieStore.delete("role")
     }catch(exception){
         console.error(exception)
     }
 }
 
-export async function obtainNewAccessToken(){
+export async function getRegisterRequests(pageNumber?: number , limit?: number){
     try{
-        const cookiesStore = cookies()
-        const refreshTokenEncrypted = cookiesStore.get("refresh")?.value
-        if(refreshTokenEncrypted){
-            const refreshToken = decryptToken(refreshTokenEncrypted)
-            const axiosConfig:AxiosRequestConfig = {headers:{
-                    Authorization: `Bearer ${refreshToken}`
-                }
-            }
-            const response = await axios.post(`${serverRuntimeConfig.API_URI}/api/auth/refresh`,null,axiosConfig)
+        const params: any = {};
+        
+        if (pageNumber !== undefined) {
+            params.pageNumber = pageNumber;
+        }
+        if (limit !== undefined) {
+            params.limit = limit;
+        }
 
-            switch(response.status){
-                case 200:
-                    const accessToken = response.data.access_token
-                    return accessToken
-                case 400:
-                    return { error: "Refresh Token Expired"}
-                case 401:
-                    return { error: "Unauthorized"}
-                case 403:
-                    return {error: "Refresh Token Not Found"}
-                case 406:
-                    return {error: "Token not acceptable"}
-                case 500:
-                    return {error: "Internal Server Error"}
+        const response = await axiosInstanceWithAccessToken.get("api/admin/get-register-requests",{
+            params: params,
+        })
+
+        const {totalPages, currentPage, registerRequests} =  response.data
+        return {
+            totalPages,
+            currentPage,
+            registerRequests
+        }
+
+
+    }catch(exception){
+        if(exception instanceof SessionExpired){
+            redirect("/")
+            // return {error: "Session Expired"}
+        }
+        if(axios.isAxiosError(exception)){
+            return {
+                error: "An Error Occured"
+
             }
         }
-    }catch(exception){
-        console.error(exception)
     }
 }
 
+
+async function getNewAccesToken(){
+    try{
+        console.log("Get new acces token")
+        const cookiesStore =  cookies()
+        const response = await axiosInstanceWithRefreshToken.post(`/api/auth/refresh`)        
+
+        if(response.status === 200){
+            const {access_token} = response.data
+            // update new access Token
+            const accessExpiryDate = new Date();
+            accessExpiryDate.setMinutes(accessExpiryDate.getMinutes() + 15);
+            cookiesStore.set({
+                name:"access",
+                value: encryptToken(access_token),
+                httpOnly:true,
+                expires:accessExpiryDate
+            })
+            return access_token
+        }else{
+            throw new SessionExpired()
+        }
+
+    }catch(exception){
+        if(exception instanceof SessionExpired){
+            throw exception
+        }
+    }
+}
 
 function encryptToken(token:string): string{
     const key = crypto.createHash('sha256').update(serverRuntimeConfig.SECRET_KEY).digest();
-    const iv = crypto.randomBytes(16); // Tạo một IV ngẫu nhiên
+    const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
     let encryptedToken = cipher.update(token, 'utf8', 'hex');
     encryptedToken += cipher.final('hex');

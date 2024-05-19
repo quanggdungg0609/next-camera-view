@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    reactStrictMode: false,
     serverRuntimeConfig:{
         API_URI: "https://acces.lanestel.fr:5000",
         REFRESH_EXP_TIME: "24h",
