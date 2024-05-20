@@ -5,7 +5,7 @@ import { object, string } from "yup";
 import FormItem from "antd/es/form/FormItem";
 import { Form, Button, Input,  Modal, Spin, notification } from "antd"
 import { RegisterValues } from "./types";
-import {register} from "@/app/_utils/server_function"
+import { registerRequests } from "@/app/_utils/requests"
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 
 const initialValues: RegisterValues={
@@ -16,7 +16,7 @@ const initialValues: RegisterValues={
 
 const registerSchema = object().shape({
     username: string().required("Username is required")
-        .matches(/^[a-z0-9]+$/, 'Username can only contain      lowercase letters and numbers')
+        .matches(/^[a-z0-9]+$/, 'Username can only contain lowercase letters and numbers')
         .min(8,"Username contain at least 8 characters")
         .max(20,"Username contain at most 20 characters"),
     password: string()
@@ -45,7 +45,7 @@ export default function RegisterForm(props: RegisterFormProps){
         initialValues: initialValues, 
         onSubmit: async (value: RegisterValues) =>{
             setOpenModal(true)
-            const response = await register(value.username, value.email, value.password)
+            const response = await registerRequests(value.username, value.email, value.password)
             if(response?.error){
                 // error here
                 setOpenModal(false)
@@ -62,7 +62,8 @@ export default function RegisterForm(props: RegisterFormProps){
                 },1000)
                 
             }
-        }
+        },
+        validationSchema:registerSchema
     });
 
     return(

@@ -9,7 +9,7 @@ import { object, string } from "yup";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useAppStore } from '@/app/_zustand/useAppStore';
 
-import { loginAsyncServer,deleteToken } from "@/app/_utils/server_function"
+import { loginRequest ,deleteToken } from "@/app/_utils/requests"
 import { useRouter } from 'next/navigation';
 import { LoginValues } from './types';
 
@@ -60,7 +60,7 @@ export default function FormLogin( ) {
         onSubmit: async (value: LoginValues)=>{
                 // ! Call api here
                 setOpenModal(true)
-                const data = await loginAsyncServer(value.account, value.password)
+                const data = await loginRequest(value.account, value.password)
 
                 if(data?.error){
                     setOpenModal(false)
