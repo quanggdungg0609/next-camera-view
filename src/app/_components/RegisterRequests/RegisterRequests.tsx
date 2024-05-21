@@ -1,23 +1,79 @@
 "use client"
-import { getRegisterRequests } from "@/app/_utils/requests";
-import { Card, Divider, Empty, Spin } from "antd";
-import Meta from "antd/es/card/Meta";
+import { approveRegisterRequest, getRegisterRequests } from "@/app/_utils/requests";
+import { CheckOutlined, CloseOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { Button, Card, Space, Table, Result, Empty } from "antd";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
 
-
 export function RegisterRequest(){
     const router = useRouter()
-    const [currentPage, setCurrentPage] = useState<number>(0)
+    const [currentPage, setCurrentPage] = useState<number>(1)
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [requests, setRequests ] = useState<any[]>([])
     const [isError, setIsError] = useState<boolean>(false)
-    // const totalPages = useRef<number>()
-    // const totalItems = useRef<number>()
+    const totalItems = useRef<number>()
+
+    const columns =[
+        {
+            title:"Username",
+            dataIndex: "userName",
+            key: "userName",
+            render: (text: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined)=> <b>{text}</b>
+        },
+        {
+            title:"Email",
+            dataIndex: "email",
+            key: "email",
+        },
+        {
+            title: "Register At",
+            dataIndex: "createdAt",
+            key: "createdAt",
+            render: (text: string | number | Date)=>{
+                const date = new Date(text)
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1; 
+                const day = date.getDate();
+                const hours = date.getHours();
+                const minutes = date.getMinutes();
+                const seconds = date.getSeconds();
+                return (
+                    `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`
+                )
+            }
+            
+        },
+        {
+            title: "Approve",
+            key:"action",
+            render: (text: any, record: { _id: any; }) => (
+                <Space size="middle">
+                    <Button 
+                        icon={<CheckOutlined />} 
+                        onClick={async () => await handleApproveRequest(record._id, true)} 
+                        style={{
+                            background:"#A1DD70",
+                            borderColor: "#A1DD70",
+                            color:"white"
+                        }}
+                    />
+                    <Button 
+                        icon={<CloseOutlined />}
+                        onClick={async () => await handleApproveRequest(record._id, false)} 
+                        style={{
+                            background:"#EE4E4E",
+                            borderColor: "#EE4E4E",
+                            color:"white"
+                        }}
+                    />
+                </Space>
+            ),
+        }
+    ]
+
 
     useEffect(()=>{
-        console.log("mounted")
         setIsLoading(true)
         getRegisterRequests()
         .then(value=>{
@@ -28,10 +84,8 @@ export function RegisterRequest(){
             {
                 setIsError(true)
             }
-            setCurrentPage(value?.currentPage)
             setRequests(value?.registerRequests)
-            // totalPages.current= value!.totalPages
-            // totalItems.current= value!.totalItems
+            totalItems.current= value!.totalItems
         })
         .finally(() => {
             setIsLoading(false);
@@ -42,48 +96,89 @@ export function RegisterRequest(){
     useEffect(()=>{
         console.table(requests)
     },[requests])
-    async function getRequests(pageNumber: number){
 
+    async function handleApproveRequest(idRequest: string, isApprove: boolean){
+        try{
+            const response = await approveRegisterRequest(idRequest, isApprove)
+            if(response.message){
+                // if request success reload the table
+                setIsLoading(true)
+                // setTimeout(async ()=>{
+                    const res = await getRegisterRequests(currentPage)
+                    if(res?.error){
+                        setIsError(true)
+                    }else{
+                        console.log("here")
+                        // console.log(res)
+                        console.log(Array.of(res?.registerRequests).length)
+                        if(res?.registerRequests.length === 0 && res.prevPage !== null){
+                            const prevPageRes = await getRegisterRequests(parseInt(res?.prevPage))
+                            console.log(prevPageRes)
+                            if(prevPageRes?.error){
+                                setIsError(true)
+                            }
+                            setRequests(prevPageRes?.registerRequests)
+                            setCurrentPage(res?.currentPage - 1)
+                        }else{
+                            setRequests(res?.registerRequests)
+                        }
+                        totalItems.current = res?.totalItems 
+                        setIsLoading(false)
+                    }
+                // },1000)
+            }
+        }catch(exception){
+            console.error(exception)
+        }
     }
 
-
-
-
+    async function handleTableChange (newPagination:any){
+        try{
+            setIsLoading(true)
+            const response = await getRegisterRequests(newPagination.current, newPagination.pageSize)
+            if(response?.error){
+                setIsError(true)
+            }
+            if(response?.registerRequests){
+                setRequests(response?.registerRequests)
+                setCurrentPage(newPagination.current)
+                setIsLoading(false)
+            }
+        }catch(exception){
+            setIsError(true)
+        }
+    };
 
     return (
         <Card
             title="Register Requests"
-            className = "w-full max-h-[400px]"
+            className = "w-full"
         >
-            {isLoading ??
-                <Spin tip="Loading" size="large">
-                    Loading
-                </Spin>
-            }
-            {
-                // (totalItems.current === 0 || !totalItems.current) ?? <Empty/>
-            }
-            <div
-                className="footer-register-request
-                flex flex-row w-full h-[50px]
-                "
-            >
-                <div
-                    className="flex flex-row"
-                >
-                    {/* <p>{currentPage} / {totalPages.current}</p> */}
-                </div>
-            </div>
+            
+            <Table 
+                columns={columns} 
+                dataSource={requests} 
+                loading={isLoading}
+                pagination={{
+                    current: currentPage,
+                    pageSize: 5,
+                    total: totalItems.current
+                }}
+                rowKey="_id"
+                onChange={handleTableChange}
+                locale={{
+                    emptyText: isError ? (
+                        <Result
+                            icon={<ExclamationCircleOutlined />}
+                            title="Error"
+                            subTitle="Failed to fetch data. Please try again later."
+                        />
+                    ) : (
+                        <Empty/>
+                    ),
+                }}
+            />
         </Card>
     )
 
-}
-
-
-interface RequestProps{
-    requests: any[]
-}
-
-
-function Requests(props: RequestProps){
 }

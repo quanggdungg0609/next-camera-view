@@ -58,74 +58,6 @@ axiosInstanceWithRefreshToken.interceptors.request.use(
     }
 )
 
-export async function getRegisterRequests(pageNumber?: number , limit?: number){
-    try{
-        const params: any = {};
-        
-        if (pageNumber !== undefined) {
-            params.pageNumber = pageNumber;
-        }
-        if (limit !== undefined) {
-            params.limit = limit;
-        }
-
-        const response = await axiosInstanceWithAccessToken.get("api/admin/get-register-requests",{
-            params: params,
-        })
-
-        const {totalPages, currentPage, totalItems, registerRequests} =  response.data
-        return {
-            totalPages,
-            totalItems,
-            currentPage,
-            registerRequests
-        }
-
-
-    }catch(exception){
-        if(exception instanceof SessionExpired){
-            // redirect("/")
-            return {error: "Session Expired"}
-        }
-        if(axios.isAxiosError(exception)){
-            return {
-                error: "An Error Occured"
-
-            }
-        }
-    }
-}
-
-
-async function getNewAccesToken(){
-    // * Make a request to obtain new access token
-    try{
-        const cookiesStore =  cookies()
-        const response = await axiosInstanceWithRefreshToken.post(`/api/auth/refresh`)       
-        if(response.status === 200){
-            const {access_token} = response.data
-            // update new access Token
-            const accessExpiryDate = new Date();
-            accessExpiryDate.setMinutes(accessExpiryDate.getMinutes() + 15);
-            cookiesStore.set({
-                name:"access",
-                value: access_token,
-                httpOnly:true,
-                expires:accessExpiryDate
-            })
-            return access_token
-        }else{
-            throw new SessionExpired()
-        }
-
-    }catch(exception){
-        console.error(exception)
-        if(exception instanceof SessionExpired){
-            throw exception
-        }
-    }
-}
-
 
 export async function loginRequest(account: string, password: string){
     // * Make a login request to server
@@ -178,6 +110,97 @@ export async function loginRequest(account: string, password: string){
         }
     }
 }
+
+export async function getRegisterRequests(pageNumber?: number , limit?: number){
+    try{
+        const params: any = {};
+        
+        if (pageNumber !== undefined) {
+            params.pageNumber = pageNumber;
+        }
+        if (limit !== undefined) {
+            params.limit = limit;
+        }
+
+        const response = await axiosInstanceWithAccessToken.get("api/admin/get-register-requests",{
+            params: params,
+        })
+
+        const {totalPages, currentPage, totalItems, registerRequests, prevPage, nextPage} =  response.data
+        return {
+            totalPages,
+            totalItems,
+            currentPage,
+            nextPage,
+            prevPage,
+            registerRequests
+        }
+
+
+    }catch(exception){
+        if(exception instanceof SessionExpired){
+            // redirect("/")
+            return {error: "Session Expired"}
+        }
+        if(axios.isAxiosError(exception)){
+            return {
+                error: "An Error Occured"
+
+            }
+        }
+    }
+}
+
+
+export async function approveRegisterRequest(idRequest: string, isApprove:boolean){
+    try{
+        const response = await axiosInstanceWithAccessToken.post("/api/admin/approval-register-request",{
+            requestId: idRequest,
+            isApprove: isApprove
+        })
+        return {
+            message: response.data.message
+        }
+    }catch(exception){
+        if(axios.isAxiosError(exception)){
+            return {error: exception.message}
+        }else{
+            return {error: "An Error Occured"}
+        }
+    }
+}
+
+
+async function getNewAccesToken(){
+    // * Make a request to obtain new access token
+    try{
+        const cookiesStore =  cookies()
+        const response = await axiosInstanceWithRefreshToken.post(`/api/auth/refresh`)       
+        if(response.status === 200){
+            const {access_token} = response.data
+            // update new access Token
+            const accessExpiryDate = new Date();
+            accessExpiryDate.setMinutes(accessExpiryDate.getMinutes() + 15);
+            cookiesStore.set({
+                name:"access",
+                value: access_token,
+                httpOnly:true,
+                expires:accessExpiryDate
+            })
+            return access_token
+        }else{
+            throw new SessionExpired()
+        }
+
+    }catch(exception){
+        console.error(exception)
+        if(exception instanceof SessionExpired){
+            throw exception
+        }
+    }
+}
+
+
 
 
 export async function registerRequests(username: string, email: string, password:string){
