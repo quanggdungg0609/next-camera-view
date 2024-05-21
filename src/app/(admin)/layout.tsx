@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AdminNavBar from "../_components/AdminNavBar/AdminNavBar";
+import AdminNavBar from "../_components/UI/AdminNavBar/AdminNavBar";
 
 
 export const metadata: Metadata = {

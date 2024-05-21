@@ -103,7 +103,6 @@ export function RegisterRequest(){
             if(response.message){
                 // if request success reload the table
                 setIsLoading(true)
-                // setTimeout(async ()=>{
                     const res = await getRegisterRequests(currentPage)
                     if(res?.error){
                         setIsError(true)
@@ -125,7 +124,6 @@ export function RegisterRequest(){
                         totalItems.current = res?.totalItems 
                         setIsLoading(false)
                     }
-                // },1000)
             }
         }catch(exception){
             console.error(exception)

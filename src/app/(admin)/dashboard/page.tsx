@@ -1,4 +1,4 @@
-import { RegisterRequest } from "@/app/_components/RegisterRequests/RegisterRequests";
+import { RegisterRequest } from "@/app/_components/UI/RegisterRequests";
 import React from "react";
 
 export default function CameraView() {
@@ -7,6 +7,7 @@ export default function CameraView() {
             className="flex flex-col p-8"
         >
             <RegisterRequest/>
+
         </div>
     )
 }
