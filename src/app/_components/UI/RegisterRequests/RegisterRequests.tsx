@@ -79,13 +79,16 @@ export function RegisterRequest(){
         .then(value=>{
             if(value?.error === "Session Expired"){
                 router.push("/")
+                return
             }
             if(value?.error === "An Error Occured")
             {
                 setIsError(true)
+                return
             }
             setRequests(value?.registerRequests)
             totalItems.current= value!.totalItems
+            return 
         })
         .finally(() => {
             setIsLoading(false);
@@ -93,9 +96,7 @@ export function RegisterRequest(){
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
 
-    useEffect(()=>{
-        console.table(requests)
-    },[requests])
+    
 
     async function handleApproveRequest(idRequest: string, isApprove: boolean){
         try{
@@ -107,12 +108,8 @@ export function RegisterRequest(){
                     if(res?.error){
                         setIsError(true)
                     }else{
-                        console.log("here")
-                        // console.log(res)
-                        console.log(Array.of(res?.registerRequests).length)
                         if(res?.registerRequests.length === 0 && res.prevPage !== null){
                             const prevPageRes = await getRegisterRequests(parseInt(res?.prevPage))
-                            console.log(prevPageRes)
                             if(prevPageRes?.error){
                                 setIsError(true)
                             }

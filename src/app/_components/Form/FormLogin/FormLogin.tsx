@@ -7,11 +7,12 @@ import FormItem from "antd/es/form/FormItem";
 import { useFormik } from "formik";
 import { object, string } from "yup";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
-import { useAppStore } from '@/app/_zustand/useAppStore';
+import { useInfoStore } from '@/app/_zustand/useInfoStore';
 
 import { loginRequest ,deleteToken } from "@/app/_utils/requests"
 import { useRouter } from 'next/navigation';
 import { LoginValues } from './types';
+import { useWebSocketStore } from '@/app/_zustand/useWebSocketStore';
 
 
 const initialValues = {
@@ -48,17 +49,18 @@ const loginSchema= object().shape({
 
 
 export default function FormLogin( ) {
-    const {login} = useAppStore()
+    const {login} = useInfoStore()
     const router = useRouter()
+    let  {uuid, userName, role} = useInfoStore()
     const [noti, contextHolder] = notification.useNotification()
     const [openModal, setOpenModal] = useState<boolean>(false)
-
+    const { isConnected, connect, register, isRegister} = useWebSocketStore()
     
     
     const formik = useFormik({
         initialValues:initialValues,
         onSubmit: async (value: LoginValues)=>{
-                // ! Call api here
+            // ! Call api here
                 setOpenModal(true)
                 const data = await loginRequest(value.account, value.password)
 
@@ -70,11 +72,28 @@ export default function FormLogin( ) {
                 }else{
                     login(data!.userName,data!.email, data!.role)
                     setOpenModal(false)
-                    router.push("/camera-view")
                 }        
-        },
-        validationSchema:loginSchema
-    })
+            },
+            validationSchema:loginSchema
+        })
+        
+        useEffect(()=>{
+            if(uuid!==""){
+                connect(process.env.WS_URI!, uuid, userName, role)
+            }
+        },[connect, role, userName, uuid])
+
+        useEffect(()=>{
+            if (isConnected ){
+                register()
+            }
+        },[isConnected])
+
+        useEffect(()=>{
+            if(isRegister){
+                router.push("/dashboard")
+            }
+        },[isRegister])
 
     //! Will be remove soon
     useEffect(()=>{

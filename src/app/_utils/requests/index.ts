@@ -111,6 +111,31 @@ export async function loginRequest(account: string, password: string){
     }
 }
 
+export async function getMyInfo(){
+    try{
+        const response = await axiosInstanceWithAccessToken.get("/api/users/get-my-info")
+        if(response.status === 200){
+            const {userName, role, email, firstName, lastName} = response.data
+            return {
+                userName,
+                role,
+                email,
+                firstName,
+                lastName,
+            }
+        }
+    }catch(exception){
+        if (axios.isAxiosError(exception)) {
+            const message = exception.response?.data
+            return {
+                error: message,
+            };
+        }else{
+            console.error(exception)
+        }
+    }
+}
+
 export async function getRegisterRequests(pageNumber?: number , limit?: number){
     try{
         const params: any = {};
@@ -151,6 +176,38 @@ export async function getRegisterRequests(pageNumber?: number , limit?: number){
     }
 }
 
+export async function getListUsers(pageNumber?: number, limit?: number){
+    try{
+        const params: any = {};
+        
+        if (pageNumber !== undefined) {
+            params.pageNumber = pageNumber;
+        }
+        if (limit !== undefined) {
+            params.limit = limit;
+        }
+        const response = await axiosInstanceWithAccessToken.get("/api/admin/get-list-users",{
+            params: params,
+        })
+
+        const {totalPages, totalItems, currentPage, nextPage, prevPage, listUsers} = response.data
+
+        return {totalPages, totalItems, currentPage, nextPage, prevPage, listUsers}
+
+    }catch(exception){
+        if(exception instanceof SessionExpired){
+            // redirect("/")
+            return {error: "Session Expired"}
+        }
+        if(axios.isAxiosError(exception)){
+            return {
+                error: "An Error Occured"
+
+            }
+        }
+    }
+}
+
 
 export async function approveRegisterRequest(idRequest: string, isApprove:boolean){
     try{
@@ -169,6 +226,8 @@ export async function approveRegisterRequest(idRequest: string, isApprove:boolea
         }
     }
 }
+
+
 
 
 async function getNewAccesToken(){
