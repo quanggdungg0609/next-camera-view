@@ -2,12 +2,17 @@
 import { getMyInfo } from '@/app/_utils/requests'
 import { useInfoStore } from '@/app/_zustand/useInfoStore'
 import { useWebSocketStore } from '@/app/_zustand/useWebSocketStore'
-import { Card } from 'antd'
-import React, { useEffect } from 'react'
+import { Button, Card, Empty, Select, Typography } from 'antd'
+import React, { useEffect, useState } from 'react'
+import MiniActiveCam from '../MiniActiveCam/MiniActiveCam'
+import { CameraOutlined } from '@ant-design/icons'
 
 export default function CameraViewCard() {
-    const {cameraQueue, isConnected, send, connect, register, isRegister,  uuid, userName, role} = useWebSocketStore()
-    const appState = useInfoStore()
+    const {cameraQueue, isConnected, send, connect,  uuid, userName, role} = useWebSocketStore()
+    const infoState = useInfoStore()
+    const [activeCam, setActiveCam] = useState<ICameraInfo|undefined>()
+    const [isRecord, setIsRecord] = useState<boolean>(false)
+
     useEffect(()=>{
         if (userName === "" && uuid === "" && role === ""){
             getMyInfo()
@@ -15,8 +20,7 @@ export default function CameraViewCard() {
                 if(value!.error){
                     console.log(value?.error)
                 }
-                
-                appState.login(value!.userName, value!.email, value!.role)
+                infoState.login(value!.username, value!.email, value!.role)
             })
         }
         if(isConnected){
@@ -27,36 +31,121 @@ export default function CameraViewCard() {
     },[])
 
     useEffect(()=>{
-        console.log(appState.uuid)
-        if(appState.uuid !== "" && appState.userName !== "" && appState.role !== ""){
-            connect(process.env.WS_URI!, appState.uuid, appState.userName, appState.role)
+        if(infoState.uuid !== "" && infoState.userName !== "" && infoState.role !== ""){
+            connect(`${process.env.WS_URI!}/ws/user/${infoState.userName}/${infoState.uuid}/`, infoState.uuid, infoState.userName, infoState.role)
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[appState.uuid, appState.userName, appState.role])
+    },[infoState.uuid, infoState.userName, infoState.role])
 
     useEffect(()=>{
-        if(isConnected && isRegister){
+        
+        if(isConnected){
+            console.log("isconnected")
             send({
                 event:"request-list-cameras"
             })
         }
-        if(isConnected && !isRegister){
-            register()
-        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[isConnected, isRegister])
+    },[isConnected])
     
 
+
     useEffect(()=>{
-        console.table(cameraQueue.length)
+        if(!activeCam && cameraQueue.length!==0){
+            setActiveCam(cameraQueue[0])
+        }
+
+        if(activeCam && cameraQueue.length === 0){
+            setActiveCam(undefined)
+        }
     },[cameraQueue])
+
+
+    function handleRecord(){
+        setIsRecord(!isRecord)
+    }
 
     return (
         <Card>
-            <Card.Meta
-                title="Camera View"
-                description={`Camera connected: ${cameraQueue.length}`}
-            />
+            {!activeCam ??
+                <Card.Meta
+                    title="Camera View"
+                />
+            }
+            <div
+                className='flex flex-row w-full justify-center items-stretch gap-4 relative'
+            >
+                
+                {
+                    activeCam !== undefined?
+                    <>
+                        <div
+                            className='relative w-3/4'
+                        >
+                            <MiniActiveCam activeCam={activeCam}/> 
+                        </div>
+                        <div 
+                            className='grow flex flex-col place-content-between'
+                        >
+                            <div
+                                className='flex flex-col'
+                            >
+                                <div
+                                    className='bg-slate-400 p-2 rounded-lg'
+                                >
+                                    <Typography.Title level={3}>
+                                        {activeCam.name}
+                                    </Typography.Title>
+                                    <Typography.Text
+                                        type='secondary'
+                                    >
+                                        {
+                                            activeCam.location.split('-').map((item, index, arr) => (
+                                                <React.Fragment key={index}>
+                                                    {item.trim()}
+                                                    {index !== arr.length - 1 && <br />}
+                                                </React.Fragment>
+                                            ))
+                                        }
+                                    </Typography.Text>
+                                </div>
+                                <div
+                                    className='flex mt-6 gap-3 w-full'
+                                >
+                                    <Button type="primary" icon={<CameraOutlined />} iconPosition='end' className='w-1/2'>
+                                        Take Image    
+                                    </Button>
+                                    <Button type="primary" icon={<CameraOutlined />} iconPosition='end' danger={isRecord}
+                                        onClick={()=>handleRecord()} className='w-1/2 grow'
+                                    >
+                                        {isRecord ? "Stop Record": "Record Video"}
+                                    </Button>
+                                </div>
+                            </div>
+                            <div
+                                className='flex flex-col items-end gap-1'
+                            >
+                                {/* List camera section */}
+                                <Typography.Text type="success">
+                                    Camera Online: {cameraQueue.length}
+                                </Typography.Text>
+                                <Select
+                                    className='w-full'
+                                    defaultValue={activeCam.name}
+                                />
+
+                                <Typography.Link className='select-none'>
+                                    {"Go to camera view page ->"}
+                                </Typography.Link>
+                            </div>
+                        </div>
+                    </>
+                    : 
+                    <Empty
+                        description="No Camera Connected"
+                    />
+                }
+            </div>
         </Card>
     )
 }

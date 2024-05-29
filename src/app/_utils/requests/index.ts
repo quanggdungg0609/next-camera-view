@@ -43,32 +43,17 @@ const axiosInstanceWithRefreshToken = axios.create({
 })
 
 
-axiosInstanceWithRefreshToken.interceptors.request.use(
-    (config)=>{
-        const cookiesStore = cookies()
-        const refreshToken = cookiesStore.get("refresh")?.value
-        if(!refreshToken){
-            throw new SessionExpired()
-        }
-        config.headers["Authorization"] = `Bearer ${refreshToken}`
-        return config
-    },
-    (error)=>{
-        return Promise.reject(error)
-    }
-)
-
-
 export async function loginRequest(account: string, password: string){
     // * Make a login request to server
 
     try{
-        const res = await axios.post(`${serverRuntimeConfig.API_URI}/api/auth/login`,{
+        
+        const res = await axios.post(`${serverRuntimeConfig.API_URI}/auth/login/`,{
             username: account,
             password: password
         })
         if(res.status === 200){
-            const {userName, email, role, access_token, refresh_token } = res.data
+            const { refresh, access, user } = res.data
             const accessExpiryDate = new Date();
             accessExpiryDate.setMinutes(accessExpiryDate.getMinutes() + 15);
 
@@ -76,32 +61,31 @@ export async function loginRequest(account: string, password: string){
             refreshExpiryDate.setDate(refreshExpiryDate.getDate() + 1);
             cookies().set({
                 name:"access",
-                value: access_token,
+                value: access,
                 httpOnly:true,
                 expires:accessExpiryDate
             })
             cookies().set({
                 name:"refresh",
-                value: refresh_token,
+                value: refresh,
                 httpOnly:true,
                 expires:refreshExpiryDate
             })
 
             cookies().set({
                 name:"role",
-                value: role,
+                value: user.role,
                 httpOnly: true
             })
             return {
-                userName: userName,
-                email: email,
-                role: role
+                userName: user.username,
+                email: user.email,
+                role: user.role
             }
         }
     }catch(exception){
-
         if (axios.isAxiosError(exception)) {
-            const message = exception.response?.data
+            const message = exception.response?.data.detail
             return {
                 error: message,
             };
@@ -113,11 +97,11 @@ export async function loginRequest(account: string, password: string){
 
 export async function getMyInfo(){
     try{
-        const response = await axiosInstanceWithAccessToken.get("/api/users/get-my-info")
+        const response = await axiosInstanceWithAccessToken.get("/auth/get-my-info/")
         if(response.status === 200){
-            const {userName, role, email, firstName, lastName} = response.data
+            const {username, role, email, firstName, lastName} = response.data
             return {
-                userName,
+                username,
                 role,
                 email,
                 firstName,
@@ -136,117 +120,29 @@ export async function getMyInfo(){
     }
 }
 
-export async function getRegisterRequests(pageNumber?: number , limit?: number){
-    try{
-        const params: any = {};
-        
-        if (pageNumber !== undefined) {
-            params.pageNumber = pageNumber;
-        }
-        if (limit !== undefined) {
-            params.limit = limit;
-        }
-
-        const response = await axiosInstanceWithAccessToken.get("api/admin/get-register-requests",{
-            params: params,
-        })
-
-        const {totalPages, currentPage, totalItems, registerRequests, prevPage, nextPage} =  response.data
-        return {
-            totalPages,
-            totalItems,
-            currentPage,
-            nextPage,
-            prevPage,
-            registerRequests
-        }
-
-
-    }catch(exception){
-        if(exception instanceof SessionExpired){
-            // redirect("/")
-            return {error: "Session Expired"}
-        }
-        if(axios.isAxiosError(exception)){
-            return {
-                error: "An Error Occured"
-
-            }
-        }
-    }
-}
-
-export async function getListUsers(pageNumber?: number, limit?: number){
-    try{
-        const params: any = {};
-        
-        if (pageNumber !== undefined) {
-            params.pageNumber = pageNumber;
-        }
-        if (limit !== undefined) {
-            params.limit = limit;
-        }
-        const response = await axiosInstanceWithAccessToken.get("/api/admin/get-list-users",{
-            params: params,
-        })
-
-        const {totalPages, totalItems, currentPage, nextPage, prevPage, listUsers} = response.data
-
-        return {totalPages, totalItems, currentPage, nextPage, prevPage, listUsers}
-
-    }catch(exception){
-        if(exception instanceof SessionExpired){
-            // redirect("/")
-            return {error: "Session Expired"}
-        }
-        if(axios.isAxiosError(exception)){
-            return {
-                error: "An Error Occured"
-
-            }
-        }
-    }
-}
-
-
-export async function approveRegisterRequest(idRequest: string, isApprove:boolean){
-    try{
-        const response = await axiosInstanceWithAccessToken.post("/api/admin/approval-register-request",{
-            requestId: idRequest,
-            isApprove: isApprove
-        })
-        return {
-            message: response.data.message
-        }
-    }catch(exception){
-        if(axios.isAxiosError(exception)){
-            return {error: exception.message}
-        }else{
-            return {error: "An Error Occured"}
-        }
-    }
-}
-
-
 
 
 async function getNewAccesToken(){
     // * Make a request to obtain new access token
     try{
         const cookiesStore =  cookies()
-        const response = await axiosInstanceWithRefreshToken.post(`/api/auth/refresh`)       
+        const refreshToken = cookiesStore.get("refresh")?.value
+        console.log(refreshToken)
+        const response = await axios.post(`/auth/refresh/`,{
+            "refresh":refreshToken
+        })       
         if(response.status === 200){
-            const {access_token} = response.data
+            const {access} = response.data
             // update new access Token
             const accessExpiryDate = new Date();
             accessExpiryDate.setMinutes(accessExpiryDate.getMinutes() + 15);
             cookiesStore.set({
                 name:"access",
-                value: access_token,
+                value: access,
                 httpOnly:true,
                 expires:accessExpiryDate
             })
-            return access_token
+            return access
         }else{
             throw new SessionExpired()
         }

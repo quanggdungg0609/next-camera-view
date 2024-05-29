@@ -9,8 +9,8 @@ export default function CameraView() {
             className="flex flex-col p-8 gap-8 bg-slate-300"
         >
             <CameraViewCard/>
-            <RegisterRequest/>
-            <ListUsers/>
+            {/* <RegisterRequest/>
+            <ListUsers/> */}
         </div>
     )
 }

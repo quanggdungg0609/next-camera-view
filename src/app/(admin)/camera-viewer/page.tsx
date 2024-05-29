@@ -9,7 +9,7 @@ function CameraViewer() {
     const [activeCam, setActiveCam]= useState<ICameraInfo|undefined>()
 
     useEffect(()=>{
-        connect(process.env.WS_URI!)
+        // connect(process.env.WS_URI!)
         return ()=>{}
     },[])
 

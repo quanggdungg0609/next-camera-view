@@ -2,7 +2,7 @@
 const nextConfig = {
     reactStrictMode: false,
     serverRuntimeConfig:{
-        API_URI: "https://acces.lanestel.fr:5000",
+        API_URI: "http://localhost:8000",
         REFRESH_EXP_TIME: "24h",
         ACCESS_EXP_TIME: "1m",
         AUTH_SECRET: "+LroEoF/v213NpSYS8ewgd8y+4HZqIK0Opp7bHMEWHk=",
@@ -11,7 +11,7 @@ const nextConfig = {
     },
 
     env:{
-        WS_URI: "wss://acces.lanestel.fr:5050",
+        WS_URI: "ws://localhost:8000",
     },
 };
 

@@ -12,7 +12,6 @@ interface WebSocketStore {
     wsUri: string,
     uuid: string,
     userName: string,
-    isRegister: boolean,
     role: string,
     subject: Subject<WSEvent>,
     isConnected: boolean,
@@ -23,7 +22,6 @@ interface WebSocketStore {
     pingInterval: NodeJS.Timeout|undefined,
     connect: (url:string, uuid: string,userName: string, role: string)=> void,
     send: (message: any)=> void,
-    register:()=> void,
     disconnect:()=> void,
     reconnect: () => void,
 
@@ -43,17 +41,13 @@ export const useWebSocketStore = create<WebSocketStore>(
         subject: new Subject<WSEvent>(),
         userName: "",
         role: "",
-        isRegister:false,
         reconnectAttempts: 0,
         maxReconnectAttempts: 5,
         reconnectInterval: 2000,
         pingInterval: undefined,
         cameraQueue:[],
         connect:  (url:string, uuid: string, userName: string, role: string) => {
-            document.cookie = "Authorization= "
-            const websocket = new WebSocket(url,
-                ["Authorization", "your_token_here"]
-            );
+            const websocket = new WebSocket(url);
             websocket.addEventListener("open",()=>{
                 set(
                     {
@@ -63,13 +57,6 @@ export const useWebSocketStore = create<WebSocketStore>(
                         userName:userName, 
                         role: role, 
                         wsUri: url,
-                        pingInterval: setInterval(()=>{
-                            websocket.send(
-                                JSON.stringify({
-                                    event:"ping"
-                                })
-                            )
-                        },10000)
                     })
                 
             })
@@ -81,7 +68,6 @@ export const useWebSocketStore = create<WebSocketStore>(
                     if(reconnectAttempts< maxReconnectAttempts){
                         set((state)=>({reconnectAttempts: state.reconnectAttempts+1}))
                         get().reconnect()
-                        get().register()
                     }
                 }
             })
@@ -102,7 +88,6 @@ export const useWebSocketStore = create<WebSocketStore>(
                         // const newCam: ICamera={
                         //     camera: camInfo,
                         // } 
-                        console.log(camInfo)
                         set((state)=>{ 
                             return {cameraQueue: [...state.cameraQueue, camInfo]}})
                         break
@@ -144,7 +129,6 @@ export const useWebSocketStore = create<WebSocketStore>(
                     //     }))
                     
                     default:
-                        console.log(message)
                         set((state)=>{
                             state.subject.next(message)
                             return state
@@ -174,20 +158,6 @@ export const useWebSocketStore = create<WebSocketStore>(
                 connect(wsUri, uuid, userName, role)
             }, reconnectInterval)
         },
-        register:()=>{
-            const {isConnected , send, uuid, role, userName} = get()
-            if(isConnected){
-                send({
-                    event:"user-connect",
-                    data:{
-                        uuid: uuid,
-                        username: userName,
-                        role: role
-                    }
-                })
-                set({isRegister:true})
-            }
-        }
 
     })
 );
