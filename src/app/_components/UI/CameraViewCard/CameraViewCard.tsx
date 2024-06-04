@@ -40,7 +40,6 @@ export default function CameraViewCard() {
     useEffect(()=>{
         
         if(isConnected){
-            console.log("isconnected")
             send({
                 event:"request-list-cameras"
             })
@@ -62,7 +61,34 @@ export default function CameraViewCard() {
 
 
     function handleRecord(){
+        if(!isRecord){
+            send({
+                event:"start-record",
+                data:{
+                    from:uuid,
+                    to: activeCam!.uuid
+                }
+            })
+        }else{
+            send({
+                event:"stop-record",
+                data:{
+                    from:uuid,
+                    to:activeCam!.uuid
+                }
+            })
+        }
         setIsRecord(!isRecord)
+    }
+
+    function handleTakeImage(){
+        send({
+            event:"take-image",
+            data:{
+                from:uuid,
+                to: activeCam!.uuid
+            }
+        })
     }
 
     return (
@@ -112,7 +138,9 @@ export default function CameraViewCard() {
                                 <div
                                     className='flex mt-6 gap-3 w-full'
                                 >
-                                    <Button type="primary" icon={<CameraOutlined />} iconPosition='end' className='w-1/2'>
+                                    <Button type="primary" icon={<CameraOutlined />} iconPosition='end' className='w-1/2'
+                                        onClick={()=>{handleTakeImage()}}
+                                    >
                                         Take Image    
                                     </Button>
                                     <Button type="primary" icon={<CameraOutlined />} iconPosition='end' danger={isRecord}

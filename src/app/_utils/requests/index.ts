@@ -20,6 +20,7 @@ axiosInstanceWithAccessToken.interceptors.request.use(
             config.headers["Authorization"] = `Bearer ${accessToken}`
         }else{
             try{
+                console.log("Get new token")
                 const accessToken = await getNewAccesToken()
                 config.headers["Authorization"] = `Bearer ${accessToken}`
             }catch(exception){
@@ -37,11 +38,6 @@ axiosInstanceWithAccessToken.interceptors.request.use(
         throw error
     }
 )
-
-const axiosInstanceWithRefreshToken = axios.create({
-    baseURL: serverRuntimeConfig.API_URI
-})
-
 
 export async function loginRequest(account: string, password: string){
     // * Make a login request to server
@@ -110,6 +106,7 @@ export async function getMyInfo(){
         }
     }catch(exception){
         if (axios.isAxiosError(exception)) {
+
             const message = exception.response?.data
             return {
                 error: message,
@@ -127,9 +124,8 @@ async function getNewAccesToken(){
     try{
         const cookiesStore =  cookies()
         const refreshToken = cookiesStore.get("refresh")?.value
-        console.log(refreshToken)
-        const response = await axios.post(`/auth/refresh/`,{
-            "refresh":refreshToken
+        const response = await axios.post(`${serverRuntimeConfig.API_URI}/auth/refresh/`,{
+            "refresh": refreshToken
         })       
         if(response.status === 200){
             const {access} = response.data
@@ -148,8 +144,12 @@ async function getNewAccesToken(){
         }
 
     }catch(exception){
-        console.error(exception)
+        if (axios.isAxiosError(exception)){
+            console.log(exception.code)
+            console.log(exception.toJSON())
+        }
         if(exception instanceof SessionExpired){
+            console.log(exception.name)
             throw exception
         }
     }
@@ -182,6 +182,24 @@ export async function registerRequests(username: string, email: string, password
     }
 }
 
+
+export async function getListCameraMedia(){
+    try{
+        const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-cameras/`)
+        if (response.status === 200){
+            return response.data
+        }
+    }catch(exception){
+        if (axios.isAxiosError(exception)){
+            const message = exception.response?.data.message
+            return {
+                error: message
+            }
+        }
+    }
+}
+
+// ! Removed soon
 export async function deleteToken(){
     try{
         const cookieStore =cookies()

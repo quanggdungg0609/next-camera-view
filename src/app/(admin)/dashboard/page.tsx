@@ -1,6 +1,5 @@
 import CameraViewCard from "@/app/_components/UI/CameraViewCard/CameraViewCard";
-import ListUsers from "@/app/_components/UI/ListUsers/ListUsers";
-import { RegisterRequest } from "@/app/_components/UI/RegisterRequests";
+import MediaCard from "@/app/_components/UI/MediaCard/MediaCard";
 import React from "react";
 
 export default function CameraView() {
@@ -11,6 +10,8 @@ export default function CameraView() {
             <CameraViewCard/>
             {/* <RegisterRequest/>
             <ListUsers/> */}
+
+            <MediaCard/>
         </div>
     )
 }
