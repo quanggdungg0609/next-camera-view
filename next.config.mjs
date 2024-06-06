@@ -13,6 +13,16 @@ const nextConfig = {
     env:{
         WS_URI: "ws://localhost:8000",
     },
+    images:{
+        remotePatterns:[
+            {
+                protocol: 'https',
+                hostname: 'acces.lanestel.fr',
+                port: '5050',
+                pathname: '/cameras-data/**',
+            },
+        ]
+    }
 };
 
 export default nextConfig;
