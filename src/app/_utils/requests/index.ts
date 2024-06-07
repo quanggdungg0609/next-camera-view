@@ -1,5 +1,5 @@
 "use server"
-import axios, { AxiosError, AxiosRequestConfig } from "axios"
+import axios from "axios"
 import { cookies } from "next/headers"
 import getConfig from 'next/config';
 import { SessionExpired, TokenNotFound} from "../exceptions"
@@ -40,9 +40,8 @@ axiosInstanceWithAccessToken.interceptors.request.use(
     }
 )
 
+// * Login request
 export async function loginRequest(account: string, password: string){
-    // * Make a login request to server
-
     try{
         
         const res = await axios.post(`${serverRuntimeConfig.API_URI}/auth/login/`,{
@@ -92,6 +91,8 @@ export async function loginRequest(account: string, password: string){
     }
 }
 
+
+// * Get user info
 export async function getMyInfo(){
     try{
         const response = await axiosInstanceWithAccessToken.get("/auth/get-my-info/")
@@ -119,9 +120,8 @@ export async function getMyInfo(){
 }
 
 
-
+// * Get new access token
 async function getNewAccesToken(){
-    // * Make a request to obtain new access token
     try{
         const cookiesStore =  cookies()
         const refreshToken = cookiesStore.get("refresh")?.value
@@ -156,7 +156,7 @@ async function getNewAccesToken(){
     }
 }
 
-
+// * Register request
 export async function registerRequests(username: string, email: string, password:string){
     // * Make a register request to server
     try{
@@ -181,7 +181,7 @@ export async function registerRequests(username: string, email: string, password
     }
 }
 
-
+// * get list of cameras
 export async function getListCameraMedia(){
     try{
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-cameras/`)
@@ -198,6 +198,7 @@ export async function getListCameraMedia(){
     }
 }
 
+// * get list of image names
 export async function getListImageNames(cameraUuid: string, pageNumber:number = 1, limit:number = 8 ){
     try{
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-images?uuid=${cameraUuid}&page=${pageNumber}&limit=${limit}`)
@@ -224,6 +225,7 @@ export async function getListImageNames(cameraUuid: string, pageNumber:number = 
     }
 }
 
+// * Get list of preview image urls
 export async function getListPreviewImages(uuid:string, imageNames: Array<string>) {
     try{
         const params = new URLSearchParams()
@@ -248,6 +250,7 @@ export async function getListPreviewImages(uuid:string, imageNames: Array<string
     }
 }
 
+// * Get list of image infos
 export async function getListImageInfos(uuid:string, imageNames: Array<string>){
     try{
         const params = new URLSearchParams()
@@ -272,6 +275,8 @@ export async function getListImageInfos(uuid:string, imageNames: Array<string>){
     }
 }
 
+
+// * Get list of video names
 export async function getListVideoNames(uuid:string, pageNumber:number = 1, limit:number = 8 ){
     try{
         const params = new URLSearchParams()
@@ -296,6 +301,8 @@ export async function getListVideoNames(uuid:string, pageNumber:number = 1, limi
     }
 }
 
+
+// * Get list thumbnail video urls
 export async function getListThumbnails(uuid:string, videoNames:Array<string>){
     try{
         const params = new URLSearchParams()
@@ -320,6 +327,8 @@ export async function getListThumbnails(uuid:string, videoNames:Array<string>){
     }
 }
 
+
+// * Get list video infos
 export async function getListVideoInfos(uuid:string, videoNames: Array<string>){
     try{
         const params = new URLSearchParams()
@@ -345,6 +354,8 @@ export async function getListVideoInfos(uuid:string, videoNames: Array<string>){
     }
 }
 
+
+// * Get list video preview urls
 export async function getListVideoPreviews(uuid: string, videoNames:Array<string>){
     try{
         const params = new URLSearchParams()
