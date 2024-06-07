@@ -272,7 +272,7 @@ export async function getListImageInfos(uuid:string, imageNames: Array<string>){
     }
 }
 
-export async function getListVideoNames(uuid:string){
+export async function getListVideoNames(uuid:string, pageNumber:number = 1, limit:number = 8 ){
     try{
         const params = new URLSearchParams()
         params.append("uuid", uuid)
@@ -345,7 +345,31 @@ export async function getListVideoInfos(uuid:string, videoNames: Array<string>){
     }
 }
 
+export async function getListVideoPreviews(uuid: string, videoNames:Array<string>){
+    try{
+        const params = new URLSearchParams()
+        params.append("uuid", uuid)
+        for (const videoName of videoNames){
+            params.append("video_names", videoName)
+        }
 
+        const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-list-video-previews/?${params.toString()}`)
+
+        if(response.status === 200){
+            const previewUrls: Array<string> = response.data.preview_urls
+            return previewUrls
+        }
+    }catch(exception){
+        if (axios.isAxiosError(exception)){
+            console.error(exception.request.data)
+            const message = exception.response?.data.message
+            const response: ResponseError={
+                error:message
+            }
+            return response
+        }
+    }
+}
 
 // ! Removed soon
 export async function deleteToken(){

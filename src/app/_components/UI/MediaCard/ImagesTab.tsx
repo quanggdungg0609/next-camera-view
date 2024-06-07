@@ -5,6 +5,7 @@ import { InfoResponse, isResponsePagination } from '@/app/_types/response.type'
 import { Card, Image, Pagination, Skeleton, Typography } from 'antd'
 import Meta from 'antd/es/card/Meta'
 import { TabsProps } from './type'
+import {formatBytes, formatDate} from "@/app/_utils/formatters"
 
 
 type ListImageType = Awaited<ReturnType<typeof getListImageNames>>
@@ -131,22 +132,6 @@ function ImagesTab(props:TabsProps):JSX.Element {
             
         </div>
     )
-}
-
-function formatBytes(bytes: number): string {
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-
-    if (bytes === 0) return '0 Byte';
-
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    const formattedValue = parseFloat((bytes / Math.pow(1024, i)).toFixed(2));
-
-    return `${formattedValue} ${sizes[i]}`;
-}
-
-function formatDate(isoTime: string): string{
-    const dateObject = new Date(isoTime)
-    return dateObject.toDateString()
 }
 
 export default ImagesTab
