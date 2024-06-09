@@ -4,14 +4,17 @@ import { cookies } from "next/headers"
 import getConfig from 'next/config';
 import { SessionExpired, TokenNotFound} from "../exceptions"
 import { InfoResponse, ResponseError, ResponsePagination } from "@/app/_types/response.type";
+import { NextResponse } from "next/server";
+import { NextApiRequest, NextApiResponse } from "next";
+import { Router, useRouter } from "next/router";
 const { serverRuntimeConfig }= getConfig()
-
 
 
 // axios configs
 const axiosInstanceWithAccessToken = axios.create({
     baseURL: serverRuntimeConfig.API_URI
 })
+
 
 axiosInstanceWithAccessToken.interceptors.request.use(
     async (config)=>{
@@ -378,6 +381,27 @@ export async function getListVideoPreviews(uuid: string, videoNames:Array<string
                 error:message
             }
             return response
+        }
+    }
+}
+
+export async function getRedirectAdminInfo(){
+    const cookiesStore =cookies()
+    const accessToken = cookiesStore.get("access")?.value
+    if(accessToken){
+        return {
+            accessToken,
+            url: serverRuntimeConfig.API_URI
+        }
+    }else{
+        try{
+            const access = await getNewAccesToken()
+            return {
+                accessToken: access,
+                url: serverRuntimeConfig.API_URI
+            }
+        }catch(e){
+            return null
         }
     }
 }

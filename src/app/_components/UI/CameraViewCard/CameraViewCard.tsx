@@ -7,6 +7,8 @@ import React, { useEffect, useState } from 'react'
 import MiniActiveCam from '../MiniActiveCam/MiniActiveCam'
 import { CameraOutlined } from '@ant-design/icons'
 
+
+
 export default function CameraViewCard() {
     const {cameraQueue, isConnected, send, connect,  uuid, userName, role} = useWebSocketStore()
     const infoState = useInfoStore()
@@ -162,9 +164,9 @@ export default function CameraViewCard() {
                                     defaultValue={activeCam.name}
                                 />
 
-                                <Typography.Link className='select-none'>
+                                {/* <Typography.Link className='select-none'>
                                     {"Go to camera view page ->"}
-                                </Typography.Link>
+                                </Typography.Link> */}
                             </div>
                         </div>
                     </>
