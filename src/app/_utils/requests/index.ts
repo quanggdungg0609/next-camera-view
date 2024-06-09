@@ -385,23 +385,25 @@ export async function getListVideoPreviews(uuid: string, videoNames:Array<string
     }
 }
 
-export async function getRedirectAdminInfo(){
-    const cookiesStore =cookies()
-    const accessToken = cookiesStore.get("access")?.value
-    if(accessToken){
-        return {
-            accessToken,
-            url: serverRuntimeConfig.API_URI
-        }
-    }else{
-        try{
-            const access = await getNewAccesToken()
+export async function getOnetimeID(){
+    try{
+        const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/auth/get-onetime-id/`)
+        if(response.status === 200){
+            const {onetime_id} = response.data
+            console.log(response.data)
             return {
-                accessToken: access,
-                url: serverRuntimeConfig.API_URI
+                onetimeId: onetime_id,
+                url:`${serverRuntimeConfig.API_URI}/auth/redirect-admin/`
             }
-        }catch(e){
-            return null
+        }
+    }catch(exception){
+        if (axios.isAxiosError(exception)){
+            console.error(exception.request.data)
+            const message = exception.response?.data.message
+            const response: ResponseError={
+                error:message
+            }
+            return response
         }
     }
 }

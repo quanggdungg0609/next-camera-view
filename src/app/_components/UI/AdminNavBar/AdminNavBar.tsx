@@ -3,10 +3,9 @@
 import React from 'react'
 import Image from "next/image"
 import { Divider } from 'antd'
-import {getRedirectAdminInfo}  from "@/app/_utils/requests"
-// import { UserOutlined } from '@ant-design/icons'
+import {getOnetimeID, }  from "@/app/_utils/requests"
 import { useInfoStore } from '@/app/_zustand/useInfoStore'
-import { access } from 'fs'
+import { isResponseError } from '@/app/_types/response.type'
 function AdminNavBar() {
     const {userName} = useInfoStore()
     
@@ -37,21 +36,12 @@ function AdminNavBar() {
                     <h6
                         className='cursor-pointer'
                         onClick={async ()=> {
-                            const info = await getRedirectAdminInfo()
-                            try{
-                                if(info){
-                                    const response = await fetch(`${info.url}/auth/admin-login/?token=${info.accessToken}`,
-                                        {
-                                            method:"GET"
-                                        }
-                                    )
-                                    if(response.ok){
-                                        window.location.href = `${info.url}/auth/admin-login/?token=${info.accessToken}`;
-                                    }
+                                const response = await getOnetimeID()
+                                if (response  && !isResponseError(response)){
+                                    window.location.href = `${response.url}?id=${response.onetimeId}`
+                                    console.log(response)
                                 }
-                            }catch(e){
-                                console.log(e)
-                            }
+                            
                         }}
                     >
                         Admin Page

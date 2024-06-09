@@ -31,3 +31,7 @@ export function isInfoResponse(obj: any): obj is InfoResponse{
             typeof obj.size === 'number' &&
             typeof obj.last_modified === 'string';
 }
+
+export  function isResponseError(obj:any): obj is ResponseError {
+    return typeof obj.error !== 'undefined';
+}
