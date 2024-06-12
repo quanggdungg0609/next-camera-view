@@ -284,6 +284,9 @@ export async function getListVideoNames(uuid:string, pageNumber:number = 1, limi
     try{
         const params = new URLSearchParams()
         params.append("uuid", uuid)
+        params.append("page", pageNumber.toString())
+        params.append("limit", limit.toString())
+
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-videos?${params.toString()}`)
         if(response.status === 200){
             const {page, nextPage, prevPage, totalPage, totalItem, files} = response.data

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { getListImageInfos, getListImageNames, getListPreviewImages } from '@/app/_utils/requests'
 import { InfoResponse, isResponsePagination } from '@/app/_types/response.type'
-import { Card, Image, Pagination, Skeleton, Typography } from 'antd'
+import { Button, Card, Image, Pagination, Skeleton, Typography } from 'antd'
 import Meta from 'antd/es/card/Meta'
 import { TabsProps } from './type'
 import {formatBytes, formatDate} from "@/app/_utils/formatters"
@@ -82,11 +82,26 @@ function ImagesTab(props:TabsProps):JSX.Element {
         }
     }
 
+    async function handleReload() {
+        setIsLoading(true);
+        try {
+            const response = await getListImageNames(cameraUuid, currentPage);
+            if (isResponsePagination(response)) {
+                setListImageNames(response.list);
+                setCurrentPage(response.page);
+                setTotalItems(response.totalItem);
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+
     return (
         <div
             className='h-fit w-full'
         >
-            <div className='flex flex-col gap-4 h-[600px] content-between '>
+            <div className='flex flex-col gap-4 content-between '>
                 {isLoading ? (
                     <div
                         className='flex justify-center items-center h-full'
@@ -94,34 +109,38 @@ function ImagesTab(props:TabsProps):JSX.Element {
                         Loading...
                     </div>
                 ) : (
-                    <div className="grid grid-cols-4 w-full gap-4 h-[600px]">
-                        {listPreviewImages.map((image, index) => (
-                            <div key={index} className="w-full flex flex-grow-0 h-fit max-h-fit">
-                                <Card
-                                    className='w-full drop-shadow-md'
-                                    cover={
+                    <div className='flex flex-col gap-3'>
+                        <Button onClick={handleReload} disabled={isLoading}>Reload</Button>
 
-                                        <Image
-                                            src={image}
-                                            alt={`Preview ${index}`}
-                                            preview={true}
-                                            // onLoad={()=>{console.log(`${index} loaded`)}}
-                                        />
-                                    }
-                                >
-                                    <Meta title={listImageInfos[index].name}
-                                        description={
-                                            <div className='flex flex-col'>
-                                                <span><Typography.Text strong>Size:</Typography.Text>{` ${formatBytes(listImageInfos[index].size)}`}</span>
-                                                <span><Typography.Text strong>Date:</Typography.Text>{` ${formatDate(listImageInfos[index].last_modified)}`}</span>
-                                            </div>
+                        <div className="grid grid-cols-4 w-full gap-4">
+                            {listPreviewImages.map((image, index) => (
+                                <div key={index} className="w-full flex flex-grow-0 h-fit max-h-fit">
+                                    <Card
+                                        className='w-full drop-shadow-md'
+                                        cover={
+
+                                            <Image
+                                                src={image}
+                                                alt={`Preview ${index}`}
+                                                preview={true}
+                                                // onLoad={()=>{console.log(`${index} loaded`)}}
+                                            />
                                         }
-                                    />
+                                    >
+                                        <Meta title={listImageInfos[index].name}
+                                            description={
+                                                <div className='flex flex-col'>
+                                                    <span><Typography.Text strong>Size:</Typography.Text>{` ${formatBytes(listImageInfos[index].size)}`}</span>
+                                                    <span><Typography.Text strong>Date:</Typography.Text>{` ${formatDate(listImageInfos[index].last_modified)}`}</span>
+                                                </div>
+                                            }
+                                        />
 
-                                </Card>
+                                    </Card>
 
-                            </div>
-                        ))}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
                 <div className='flex items-center justify-center'>

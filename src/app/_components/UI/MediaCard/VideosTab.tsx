@@ -91,7 +91,7 @@ function VideosTab(props:TabsProps): JSX.Element {
 
     return (
         <div className='h-fit w-full'>
-            <div className='flex flex-col gap-4 h-[600px] content-between'>
+            <div className='flex flex-col gap-4 content-between'>
                 {
                     isLoading?
                         <div
@@ -101,7 +101,7 @@ function VideosTab(props:TabsProps): JSX.Element {
                         </div>
                         :
                         <div
-                            className='grid grid-cols-4 w-full gap-4 h-[600px]'
+                            className='grid grid-cols-4 w-full gap-4 '
                         >
                             {
                                 listThumbs.map((image,index)=>(
@@ -199,7 +199,7 @@ function VideosTab(props:TabsProps): JSX.Element {
                 <div className='flex items-center justify-center'>
                         <Pagination simple current={currentPage} total={totalItems} pageSize={8}
                             onChange={(page)=>{
-                                // handleChangePage(page)
+                                handleChangePage(page)
                             }}
                         />
                 </div>

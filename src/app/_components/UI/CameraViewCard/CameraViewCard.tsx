@@ -30,6 +30,7 @@ export default function CameraViewCard() {
                 event:"request-list-cameras"
             })
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
 
     useEffect(()=>{
@@ -59,6 +60,7 @@ export default function CameraViewCard() {
         if(activeCam && cameraQueue.length === 0){
             setActiveCam(undefined)
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[cameraQueue])
 
 
@@ -161,12 +163,19 @@ export default function CameraViewCard() {
                                 </Typography.Text>
                                 <Select
                                     className='w-full'
-                                    defaultValue={activeCam.name}
-                                />
+                                    defaultValue={0}
+                                    onChange={(value: number)=>{
+                                        setActiveCam(cameraQueue[value])
+                                    }}
 
-                                {/* <Typography.Link className='select-none'>
-                                    {"Go to camera view page ->"}
-                                </Typography.Link> */}
+                                    options={cameraQueue.map((camera:ICameraInfo, index: number)=>{
+                                        return {
+                                            value:index,
+                                            label: <span>{camera.name}</span>
+                                        }
+                                    })}
+                                >
+                                </Select>
                             </div>
                         </div>
                     </>
