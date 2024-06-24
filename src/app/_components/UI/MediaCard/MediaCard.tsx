@@ -35,6 +35,7 @@ function MediaCard() {
     useEffect(()=>{
         setIsLoading(true)
         getListCameraMedia().then(value=>{
+            console.log(value)
             if (!value.error){
                 if (Array.isArray(value.cameras)){
                     setListCameras(value.cameras)

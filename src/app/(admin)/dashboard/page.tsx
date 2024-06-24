@@ -1,8 +1,9 @@
 "use client"
 import CameraViewCard from "@/app/_components/UI/CameraViewCard/CameraViewCard";
+import ListeGaches from "@/app/_components/UI/ListeGaches/ListeGaches";
 import MediaCard from "@/app/_components/UI/MediaCard/MediaCard";
-import { QuestionCircleOutlined } from "@ant-design/icons";
-import { FloatButton, Popover } from "antd";
+import {  UnlockOutlined } from "@ant-design/icons";
+import { FloatButton, Popover, Typography } from "antd";
 import React, { useState } from "react";
 
 export default function CameraView() {
@@ -22,15 +23,18 @@ export default function CameraView() {
             <MediaCard/>
             <Popover
                 content={
-                    <div>
-                        Hello
+                    <div
+                        className="flex flex-col w-[280px] p-1 "
+                    >
+                        <ListeGaches/>
                     </div>
                 }
                 trigger="click"
                 open={open}
                 onOpenChange={handleOpenChange}
+                placement="right"
             >
-                <FloatButton icon={<QuestionCircleOutlined />} type="primary" style={{ right: 24 }} />
+                <FloatButton icon={<UnlockOutlined  />} type="primary" style={{ left:20, top:"50%" }} />
             </Popover>
         </div>
     )

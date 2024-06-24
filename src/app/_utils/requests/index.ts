@@ -7,6 +7,7 @@ import { InfoResponse, ResponseError, ResponsePagination } from "@/app/_types/re
 import { NextResponse } from "next/server";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Router, useRouter } from "next/router";
+import { Gache } from "@/app/_types/gache.type";
 const { serverRuntimeConfig }= getConfig()
 
 
@@ -410,6 +411,65 @@ export async function getOnetimeID(){
         }
     }
 }
+
+
+export async function getListAccessPortes(): Promise<Array<Gache> | ResponseError> {
+    try {
+        const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/portes/get-portes-access/`);
+        if (response.status === 200) {
+            const { portes } = response.data;
+            let result: Array<Gache> = [];
+            for (const porte of portes) {
+                result.push({
+                    id: porte.id,
+                    name: porte.name
+                });
+            }
+            return result;
+        } else {
+            return { error: 'Unexpected response status' }; // Handle non-200 response status
+        }
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
+            console.error(exception.request.data);
+            const message = exception.response?.data.message || 'An unknown error occurred';
+            const response: ResponseError = {
+                error: message
+            };
+            return response;
+        } else {
+            return { error: 'An unknown error occurred' }; // Handle non-Axios errors
+        }
+    }
+}
+
+
+export async function openDoor(id: number): Promise<{ response: string } | ResponseError> {
+    try {
+        const response = await axiosInstanceWithAccessToken.post(
+            `${serverRuntimeConfig.API_URI}/portes/open-door/${id}/`
+        );
+
+        if (response.status === 200 && response.data === 'Ok') {
+            return { response: 'ok' };
+        }
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
+            console.error(exception.request.data);
+            const message = exception.response?.data.message;
+
+            if (exception.response?.status === 403 && message === "Vous n'avez pas le droit de toucher à cette porte") {
+                return { response: 'ko' };
+            }
+
+            return { error: message || 'An unknown error occurred' };
+        } else {
+            return { error: 'An unknown error occurred' }; // Handle non-Axios errors
+        }
+    }
+    return { error: 'An unknown error occurred' }; // Fallback error if none of the conditions are met
+}
+
 
 // ! Removed soon
 export async function deleteToken(){
