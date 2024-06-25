@@ -1,7 +1,6 @@
 "use client"
 import { BrowserView, MobileView } from "react-device-detect";
 import { Button, Card} from "antd"
-import { useState } from "react";
 import FormLogin from "./_components/Form/FormLogin/FormLogin";
 import FormRegister from "./_components/Form/FormRegister/FormRegister";
 // import "antd/lib/select/style/index.css";
@@ -10,11 +9,11 @@ import FormRegister from "./_components/Form/FormRegister/FormRegister";
 
 // TODO: Implement register feature
 export default function Home() {
-  const [isReg, setIsReg] = useState<Boolean>(false)
+  // const [isReg, setIsReg] = useState<Boolean>(false)
 
-  function switchIsReg(){
-    setIsReg(!isReg)
-  }
+  // function switchIsReg(){
+  //   setIsReg(!isReg)
+  // }
 
   return (
       <main 
@@ -27,16 +26,17 @@ export default function Home() {
           min-w-[300px] w-1/3 h-2/3  justify-center items-center"
         >
             <Card
-              title={isReg? "Register" : "Login"}
+              title="Login"
+              // title={isReg? "Register" : "Login"}
               className="w-full shadow-lg"
               bordered={true}
-            >
-              {
+              >
+              <FormLogin/>
+              {/* {
                 !isReg ?
-                <FormLogin/>
                 : <FormRegister switchToLogin={switchIsReg}/>
-              }
-              <div 
+              } */}
+              {/* <div 
                 className="flex w-full justify-end"
               >
                 <Button 
@@ -47,7 +47,7 @@ export default function Home() {
                 >
                   {isReg ? "Login":"Register"}
                 </Button>
-              </div>
+              </div> */}
             </Card>
         </BrowserView>
         <MobileView>

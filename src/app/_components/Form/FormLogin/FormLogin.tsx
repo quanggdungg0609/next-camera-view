@@ -88,10 +88,10 @@ export default function FormLogin( ) {
         },[isConnected])
 
 
-    //! Will be remove soon
-    useEffect(()=>{
-        deleteToken()
-    },[])
+    // //! Will be remove soon
+    // useEffect(()=>{
+    //     deleteToken()
+    // },[])
 
     return (
                 <Form 
