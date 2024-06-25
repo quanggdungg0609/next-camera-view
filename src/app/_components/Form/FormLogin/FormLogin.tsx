@@ -9,7 +9,7 @@ import { object, string } from "yup";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useInfoStore } from '@/app/_zustand/useInfoStore';
 
-import { loginRequest ,deleteToken } from "@/app/_utils/requests"
+import { loginRequest } from "@/app/_utils/requests"
 import { useRouter } from 'next/navigation';
 import { LoginValues } from './types';
 import { useWebSocketStore } from '@/app/_zustand/useWebSocketStore';
