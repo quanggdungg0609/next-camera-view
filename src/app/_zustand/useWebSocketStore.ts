@@ -1,7 +1,6 @@
 import {create} from "zustand";
 import { Subject } from "rxjs";
-import { list } from "postcss";
-import { headers } from "next/headers";
+
 
 interface ICamera {
     camera: ICameraInfo
@@ -10,12 +9,22 @@ interface ICamera {
 
 interface WebSocketStore {
     ws?: WebSocket,
+    wsUri: string,
+    uuid: string,
+    userName: string,
+    role: string,
     subject: Subject<WSEvent>,
     isConnected: boolean,
+    reconnectAttempts: number,
+    maxReconnectAttempts: number,
+    reconnectInterval: number,
     cameraQueue: ICameraInfo[],
-    connect: (url:string)=> void
-    send: (message: any)=> void
-    disconnect:()=> void
+    pingInterval: NodeJS.Timeout|undefined,
+    connect: (url:string, uuid: string,userName: string, role: string)=> void,
+    send: (message: any)=> void,
+    disconnect:()=> void,
+    reconnect: () => void,
+
 }
 
 export interface WSEvent{
@@ -24,27 +33,49 @@ export interface WSEvent{
 }
 
 export const useWebSocketStore = create<WebSocketStore>(
-    (set) => ({
+    (set, get) => ({
         ws: undefined,
+        wsUri: "",
+        uuid:"",
         isConnected: false,
         subject: new Subject<WSEvent>(),
+        userName: "",
+        role: "",
+        reconnectAttempts: 0,
+        maxReconnectAttempts: 5,
+        reconnectInterval: 2000,
+        pingInterval: undefined,
         cameraQueue:[],
-        connect: (url:string) => {
-            document.cookie = "Authorization= "
-            const ws = new WebSocket(url,
-                ["Authorization", "your_token_here"]
-            );
-            
-            ws.addEventListener("open",()=>{
-                set({ws, isConnected:true})
+        connect:  (url:string, uuid: string, userName: string, role: string) => {
+            const websocket = new WebSocket(url);
+            websocket.addEventListener("open",()=>{
+                set(
+                    {
+                        ws: websocket,
+                        isConnected:true, 
+                        uuid:uuid, 
+                        userName:userName, 
+                        role: role, 
+                        wsUri: url,
+                    })
+                
             })
 
-            ws.addEventListener("close",()=>{
+            websocket.addEventListener("close",()=>{
                 set({isConnected:false})
+                const {reconnectAttempts, maxReconnectAttempts, wsUri, uuid, userName, role} = get()
+                if( wsUri!== "" &&  uuid!== "" && userName!== "" && role!== "" ) {
+                    if(reconnectAttempts< maxReconnectAttempts){
+                        set((state)=>({reconnectAttempts: state.reconnectAttempts+1}))
+                        get().reconnect()
+                    }
+                }
             })
+
+            // todo need to impl
 
             //* Event handler
-            ws.addEventListener("message", (event: MessageEvent) => {
+            websocket.addEventListener("message", (event: MessageEvent) => {
                 const message:WSEvent= JSON.parse(event.data)
                 switch(message.event){
                     case "camera-connect":
@@ -57,7 +88,6 @@ export const useWebSocketStore = create<WebSocketStore>(
                         // const newCam: ICamera={
                         //     camera: camInfo,
                         // } 
-                        console.log(camInfo)
                         set((state)=>{ 
                             return {cameraQueue: [...state.cameraQueue, camInfo]}})
                         break
@@ -81,6 +111,9 @@ export const useWebSocketStore = create<WebSocketStore>(
                             }
                             break
 
+                    case "pong":
+                        // a keep-alive 
+                        break
                     // case "answer-sd":
                     //     const  answerSd:RTCSessionDescription = new RTCSessionDescription(
                     //         {
@@ -115,9 +148,17 @@ export const useWebSocketStore = create<WebSocketStore>(
         disconnect:()=>{
             set((prevState)=>{
                 prevState.ws!.close()
-                return {...prevState, ws: undefined, }
+                return {...prevState, ws: undefined }
             })
-        }
+        },
+        reconnect: ()=>{
+            
+            const { connect, reconnectInterval, wsUri, uuid, userName, role} = get()
+            setTimeout(()=>{
+                connect(wsUri, uuid, userName, role)
+            }, reconnectInterval)
+        },
+
     })
 );
 

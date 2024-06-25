@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useWebSocketStore } from "../_zustand/useWebSocketStore";
-import { useAppStore } from "../_zustand/useAppStore";
+import { useInfoStore } from "@/app/_zustand/useInfoStore";
 import ActiveCamera from "./components/ActiveCamera";
 import ListCamera from "./components/ListCamera";
 
@@ -11,7 +11,7 @@ import ListCamera from "./components/ListCamera";
 
 export default function CameraView() {
 
-    let  {uuid, userName, role, email} = useAppStore()
+    let  {uuid, userName, role} = useInfoStore()
     const {cameraQueue, isConnected, connect, send} = useWebSocketStore()
     const [activeCam, setActiveCam]= useState<ICameraInfo | undefined>()
 
@@ -19,8 +19,8 @@ export default function CameraView() {
     
 
     useEffect(()=>{
-
-        connect(process.env.WS_URI!)
+        console.log(uuid)
+        // connect(process.env.WS_URI!,"d865c217-0e59-4c74-96bf-fd0c65e3f0ea","quangdung","admin")
     
         return()=>{
             
@@ -29,20 +29,21 @@ export default function CameraView() {
 
     useEffect(()=>{
         if(isConnected){
+            // register()
             // register
-            send({
-                event:"user-connect",
-                data:{
-                    uuid: uuid,
-                    username: userName,
-                    role: role
-                }
-            })
+            // send({
+            //     event:"user-connect",
+            //     data:{
+            //         uuid: uuid,
+            //         username: userName,
+            //         role: role
+            //     }
+            // })
 
             // request list camera connect
-            send({
-                event:"request-list-cameras"
-            })
+            // send({
+            //     event:"request-list-cameras"
+            // })
         }   
 
     },[isConnected])

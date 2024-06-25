@@ -1,5 +1,5 @@
 import { useWebRTC } from "@/app/_hooks/useWebRTC";
-import { useAppStore } from "@/app/_zustand/useAppStore";
+import { useInfoStore } from "@/app/_zustand/useInfoStore";
 import { useWebSocketStore } from "@/app/_zustand/useWebSocketStore";
 import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
 
@@ -12,7 +12,7 @@ export default function ActiveCamera(props:{activeCam: ICameraInfo}): ReactEleme
     
     // * zustand stores
     const webSocket = useWebSocketStore()
-    const appState = useAppStore()
+    const appState = useInfoStore()
     // * hooks
     const {createPeerConnection, addRemoteSD, closeConnection, stream, localSD} = useWebRTC()
 

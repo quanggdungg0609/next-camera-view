@@ -2,8 +2,8 @@
 import { BrowserView, MobileView } from "react-device-detect";
 import { Button, Card} from "antd"
 import { useState } from "react";
-import FormLogin from "./_components/FormLogin/FormLogin";
-import FormRegister from "./_components/FormRegister/FormRegister";
+import FormLogin from "./_components/Form/FormLogin/FormLogin";
+import FormRegister from "./_components/Form/FormRegister/FormRegister";
 // import "antd/lib/select/style/index.css";
 
 
