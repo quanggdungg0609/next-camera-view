@@ -14,7 +14,6 @@ function ListeGaches() {
         getListAccessPortes().then((response) => {
             if (Array.isArray(response)) {
                 setListGaches(response);
-                console.table(response);
             } else {
                 console.error(response.error);
             }
@@ -62,7 +61,7 @@ function ListeGaches() {
     return (
         <>
             <Typography.Title level={4}>List des Gaches</Typography.Title>
-            <div className='flex flex-col h-[350px] overflow-x-scroll gap-4 mt-6'>
+            <div className='flex flex-col h-[350px] overflow-x-scroll gap-6 mt-6'>
                 {isLoading ? (
                     <div className='w-full h-full flex items-center justify-center'>
                         <Spin />

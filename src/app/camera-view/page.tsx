@@ -12,7 +12,7 @@ import ListCamera from "./components/ListCamera";
 export default function CameraView() {
 
     let  {uuid, userName, role} = useInfoStore()
-    const {cameraQueue, isConnected, connect, send, register} = useWebSocketStore()
+    const {cameraQueue, isConnected, connect, send} = useWebSocketStore()
     const [activeCam, setActiveCam]= useState<ICameraInfo | undefined>()
 
 

@@ -34,7 +34,7 @@ export default function CameraView() {
                 onOpenChange={handleOpenChange}
                 placement="right"
             >
-                <FloatButton icon={<UnlockOutlined  />} type="primary" style={{ left:20, top:"50%" }} />
+                <FloatButton icon={<UnlockOutlined  />} type="primary" style={{ left:20,  }} />
             </Popover>
         </div>
     )

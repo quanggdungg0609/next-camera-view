@@ -7,7 +7,7 @@ import { InfoResponse, ResponseError, ResponsePagination } from "@/app/_types/re
 import { NextResponse } from "next/server";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Router, useRouter } from "next/router";
-import { Gache } from "@/app/_types/gache.type";
+import { Gache, OpenDoorResponse } from "@/app/_types/gache.type";
 const { serverRuntimeConfig }= getConfig()
 
 
@@ -444,7 +444,7 @@ export async function getListAccessPortes(): Promise<Array<Gache> | ResponseErro
 }
 
 
-export async function openDoor(id: number): Promise<{ response: string } | ResponseError> {
+export async function openDoor(id: number): Promise<OpenDoorResponse | ResponseError> {
     try {
         const response = await axiosInstanceWithAccessToken.post(
             `${serverRuntimeConfig.API_URI}/portes/open-door/${id}/`

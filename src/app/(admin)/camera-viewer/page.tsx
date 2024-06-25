@@ -1,4 +1,4 @@
-
+"use client"
 import { useInfoStore } from '@/app/_zustand/useInfoStore'
 import { useWebSocketStore } from '@/app/_zustand/useWebSocketStore'
 import React, { useEffect, useState } from 'react'
