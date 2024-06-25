@@ -3,12 +3,13 @@
 import React from 'react'
 import Image from "next/image"
 import { Divider } from 'antd'
-import {getOnetimeID, }  from "@/app/_utils/requests"
+import {getOnetimeID, logout}  from "@/app/_utils/requests"
 import { useInfoStore } from '@/app/_zustand/useInfoStore'
 import { isResponseError } from '@/app/_types/response.type'
+import  { useRouter } from 'next/navigation'
 function AdminNavBar() {
     const {userName} = useInfoStore()
-    
+    const router = useRouter();
     
     return (
         <nav className="flex flex-row h-[100px] w-full bg-slate-600 items-center place-content-between px-5">
@@ -48,7 +49,10 @@ function AdminNavBar() {
                     </h6>
                     <h6
                         className='cursor-pointer'
-
+                        onClick={async()=>{
+                            await logout()
+                            router.push("/");
+                        }}
                     >
                         Logout
                     </h6>

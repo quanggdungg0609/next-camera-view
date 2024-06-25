@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Router, useRouter } from "next/router";
 import { Gache, OpenDoorResponse } from "@/app/_types/gache.type";
+import { redirect } from "next/navigation";
 const { serverRuntimeConfig }= getConfig()
 
 
@@ -471,8 +472,9 @@ export async function openDoor(id: number): Promise<OpenDoorResponse | ResponseE
 }
 
 
-// ! Removed soon
-export async function deleteToken(){
+
+
+export async function logout(){
     try{
         const cookieStore =cookies()
         cookieStore.delete("access")
@@ -482,6 +484,5 @@ export async function deleteToken(){
         console.error(exception)
     }
 }
-
 
 
