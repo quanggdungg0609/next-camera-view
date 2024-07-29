@@ -112,7 +112,7 @@ function ImagesTab(props:TabsProps):JSX.Element {
                     <div className='flex flex-col gap-3'>
                         <Button onClick={handleReload} disabled={isLoading}>Reload</Button>
 
-                        <div className="grid grid-cols-4 w-full gap-4">
+                        <div className="grid  grid-row-1 md:grid-cols-4 w-full gap-4">
                             {listPreviewImages.map((image, index) => (
                                 <div key={index} className="w-full flex flex-grow-0 h-fit max-h-fit">
                                     <Card

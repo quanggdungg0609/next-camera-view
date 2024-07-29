@@ -14,7 +14,7 @@ export default function CameraView() {
     }
     return(
         <div
-            className="flex flex-col p-8 gap-8 bg-slate-300"
+            className="flex flex-col p-4 md:p-8  gap-4 md:gap-8 bg-slate-300"
         >
             <CameraViewCard/>
             {/* <RegisterRequest/>
