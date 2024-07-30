@@ -60,7 +60,7 @@ export default function FormLogin( ) {
                 const data = await loginRequest(value.account, value.password)
 
                 if(data?.error){
-                    console.log(data?.error)
+                    // console.log(data?.error)
                     setOpenModal(false)
                     noti.error({
                         message:data.error
@@ -81,7 +81,7 @@ export default function FormLogin( ) {
 
         useEffect(()=>{
             if (isConnected ){
-                console.log("connected")
+                // console.log("connected")
                 router.push("/dashboard")
 
             }

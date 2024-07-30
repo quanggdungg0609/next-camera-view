@@ -19,7 +19,7 @@ export default function CameraView() {
     
 
     useEffect(()=>{
-        console.log(uuid)
+        // console.log(uuid)
         // connect(process.env.WS_URI!,"d865c217-0e59-4c74-96bf-fd0c65e3f0ea","quangdung","admin")
     
         return()=>{

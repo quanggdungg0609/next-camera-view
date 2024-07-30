@@ -35,7 +35,7 @@ function MediaCard() {
     useEffect(()=>{
         setIsLoading(true)
         getListCameraMedia().then(value=>{
-            console.log(value)
+            // console.log(value)
             if (!value.error){
                 if (Array.isArray(value.cameras)){
                     setListCameras(value.cameras)
@@ -50,7 +50,7 @@ function MediaCard() {
     },[])
 
     useEffect(()=>{
-        console.log(selectedCamera)
+        // console.log(selectedCamera)
     },[selectedCamera])
     return (
         <Card

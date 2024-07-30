@@ -40,7 +40,7 @@ function AdminNavBar() {
                                 const response = await getOnetimeID()
                                 if (response  && !isResponseError(response)){
                                     window.location.href = `${response.url}?id=${response.onetimeId}`
-                                    console.log(response)
+                                    // console.log(response)
                                 }
                             
                         }}

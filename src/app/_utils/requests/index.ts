@@ -26,7 +26,7 @@ axiosInstanceWithAccessToken.interceptors.request.use(
             config.headers["Authorization"] = `Bearer ${accessToken}`
         }else{
             try{
-                console.log("Get new token")
+                // console.log("Get new token")
                 const accessToken = await getNewAccesToken()
                 config.headers["Authorization"] = `Bearer ${accessToken}`
             }catch(exception){
@@ -395,7 +395,7 @@ export async function getOnetimeID(){
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/auth/get-onetime-id/`)
         if(response.status === 200){
             const {onetime_id} = response.data
-            console.log(response.data)
+            (response.data)
             return {
                 onetimeId: onetime_id,
                 url:`${serverRuntimeConfig.API_URI}/auth/redirect-admin/`

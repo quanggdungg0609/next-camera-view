@@ -37,7 +37,6 @@ export function useWebRTC(){
 		async function setSDP(){
             if (peerConnection && remoteSD){
                 try{
-					console.log(remoteSD.sdp)
                     await peerConnection.setRemoteDescription(remoteSD)
                 }catch(err){
                     setError(err)
@@ -116,7 +115,6 @@ export function useWebRTC(){
 				setError(error)
 			}
 			setPeerConnection(peer)
-			console.log(peer.localDescription?.sdp)
 			setLocalSD(peer.localDescription)
 		}
 	}

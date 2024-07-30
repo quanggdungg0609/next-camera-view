@@ -36,7 +36,7 @@ function ImagesTab(props:TabsProps):JSX.Element {
             }
         })
         return ()=>{
-            console.log("image tab unmounted")
+            // console.log("image tab unmounted")
         }
     },[])
 
