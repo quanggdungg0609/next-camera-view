@@ -32,10 +32,12 @@ export function useWebRTC(){
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	},[])
 
+
 	useEffect(()=>{
 		async function setSDP(){
             if (peerConnection && remoteSD){
                 try{
+					console.log(remoteSD.sdp)
                     await peerConnection.setRemoteDescription(remoteSD)
                 }catch(err){
                     setError(err)
@@ -91,8 +93,9 @@ export function useWebRTC(){
 			}
 			try{
 				peer.addTransceiver("video", {
-					direction: "recvonly"
+					direction: "sendrecv"
 				})
+				
 				let offer = await peer.createOffer()
 				await peer.setLocalDescription(offer)
 				await new Promise<void>( resolve => {
@@ -113,6 +116,7 @@ export function useWebRTC(){
 				setError(error)
 			}
 			setPeerConnection(peer)
+			console.log(peer.localDescription?.sdp)
 			setLocalSD(peer.localDescription)
 		}
 	}

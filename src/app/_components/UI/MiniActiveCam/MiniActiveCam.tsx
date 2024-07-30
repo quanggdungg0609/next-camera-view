@@ -42,8 +42,12 @@ function MiniActiveCam(props:{activeCam: ICameraInfo}):ReactElement {
 
 
     useEffect(()=>{
+
         if(stream && videoRef.current){
+            
             videoRef.current.srcObject = stream
+
+            videoRef.current.play()
         }else if(!stream && videoRef.current){
             videoRef.current.srcObject=null
         }
@@ -78,6 +82,7 @@ function MiniActiveCam(props:{activeCam: ICameraInfo}):ReactElement {
                     ref={videoRef}
                     autoPlay={true}
                     muted={true}
+                    playsInline
                     className='object-fill w-full rounded-lg drop-shadow-md'
                 />
             

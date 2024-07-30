@@ -22,9 +22,9 @@ export default function Home() {
         p-8
         bg-cyan-300"
       >
-        <BrowserView className="flex 
+        {/* <BrowserView className="flex 
           min-w-[300px] w-1/3 h-2/3  justify-center items-center"
-        >
+        > */}
             <Card
               title="Login"
               // title={isReg? "Register" : "Login"}
@@ -49,10 +49,10 @@ export default function Home() {
                 </Button>
               </div> */}
             </Card>
-        </BrowserView>
+        {/* </BrowserView>
         <MobileView>
           testing mobile
-        </MobileView>
+        </MobileView> */}
 
       </main>
   );

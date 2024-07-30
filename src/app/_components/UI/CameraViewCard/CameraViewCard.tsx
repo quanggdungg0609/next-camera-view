@@ -99,7 +99,7 @@ export default function CameraViewCard() {
         <Card
             className='p-10'
         >
-            {!activeCam ??
+            {!activeCam &&
                 <Card.Meta
                     title="Camera View"
                 />
