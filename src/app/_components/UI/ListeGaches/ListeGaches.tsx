@@ -1,7 +1,7 @@
 import { Gache } from '@/app/_types/gache.type'
 import { getListAccessPortes, openDoor } from '@/app/_utils/requests'
 import { LockOutlined, UnlockOutlined } from '@ant-design/icons'
-import { Button, Spin, Typography } from 'antd'
+import { Button, Divider, Spin, Typography } from 'antd'
 import React, {useState, useEffect, useRef} from 'react'
 
 function ListeGaches() {
@@ -61,6 +61,7 @@ function ListeGaches() {
     return (
         <>
             <Typography.Title level={4}>List des Gaches</Typography.Title>
+            <Divider />
             <div className='flex flex-col h-[350px] overflow-x-scroll gap-6 mt-6'>
                 {isLoading ? (
                     <div className='w-full h-full flex items-center justify-center'>

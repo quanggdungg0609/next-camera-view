@@ -90,7 +90,7 @@ function VideosTab(props:TabsProps): JSX.Element {
     }
 
     return (
-        <div className='h-fit w-full'>
+        <div className='md:h-fit w-full'>
             <div className='flex flex-col gap-4 content-between'>
                 {
                     isLoading?
@@ -101,7 +101,7 @@ function VideosTab(props:TabsProps): JSX.Element {
                         </div>
                         :
                         <div
-                            className='grid grid-cols-4 w-full gap-4 '
+                            className='grid  grid-rows-1 md:grid-cols-4 w-full gap-4 '
                         >
                             {
                                 listThumbs.map((image,index)=>(
@@ -109,7 +109,7 @@ function VideosTab(props:TabsProps): JSX.Element {
                                         className="w-full flex flex-grow-0 h-fit max-h-fit"
                                     >
                                         <Card
-                                            className="w-full drop-shadow-md"
+                                            className="w-full drop-shadow-md p2"
                                             cover={
                                                 <Image
                                                     src={image}

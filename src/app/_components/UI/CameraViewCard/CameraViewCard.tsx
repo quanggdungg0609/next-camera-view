@@ -96,21 +96,23 @@ export default function CameraViewCard() {
     }
 
     return (
-        <Card>
-            {!activeCam ??
+        <Card
+            className='p-10'
+        >
+            {!activeCam &&
                 <Card.Meta
                     title="Camera View"
                 />
             }
             <div
-                className='flex flex-row w-full justify-center items-stretch gap-4 relative'
+                className='flex flex-col md:flex-row w-full justify-center items-stretch gap-2 md:gap-4 relative'
             >
                 
                 {
                     activeCam !== undefined?
                     <>
                         <div
-                            className='relative w-3/4'
+                            className='relative  w-full md:w-3/4'
                         >
                             <MiniActiveCam activeCam={activeCam}/> 
                         </div>
