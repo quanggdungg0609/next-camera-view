@@ -1,8 +1,8 @@
-import {useEffect, useState} from "react"
+import { useEffect, useState } from "react"
 
-const iceServerConfig ={
-    sdpSemantics: 'unified-plan',
-    iceServers: [
+const iceServerConfig = {
+	sdpSemantics: 'unified-plan',
+	iceServers: [
 		{ urls: 'stun:stun.services.mozilla.com' },
 		{ urls: 'stun:stun.l.google.com:19302' }
 	]
@@ -11,99 +11,105 @@ const iceServerConfig ={
 
 
 
-export function useWebRTC(){
+export function useWebRTC() {
 	const [peerConnection, setPeerConnection] = useState<RTCPeerConnection>()
-	const [remoteSD,setRemoteSD] = useState<RTCSessionDescription>()
+	const [remoteSD, setRemoteSD] = useState<RTCSessionDescription>()
 	const [error, setError] = useState<unknown>()
-	
-	const [signalingState, setSignalingState] = useState<string|null>()
-	const [connectionState, setConnectionState] = useState<string|null>()
-	const [iceConnectionState, setIceConnectionState] = useState<string|null>()
-	
-	const [localSD, setLocalSD] = useState<RTCSessionDescription|null>()
+
+	const [signalingState, setSignalingState] = useState<string | null>()
+	const [connectionState, setConnectionState] = useState<string | null>()
+	const [iceConnectionState, setIceConnectionState] = useState<string | null>()
+
+	const [localSD, setLocalSD] = useState<RTCSessionDescription | null>()
 	const [remoteStream, setRemoteStream] = useState<MediaStream>()
 
-	useEffect(()=>{
-		return ()=>{
-			if(peerConnection){
+	useEffect(() => {
+		return () => {
+			if (peerConnection) {
 				closeConnection()
 			}
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	},[])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 
-	useEffect(()=>{
-		async function setSDP(){
-            if (peerConnection && remoteSD){
-                try{
+	useEffect(() => {
+		async function setSDP() {
+			if (peerConnection && remoteSD) {
+				try {
 					console.log(remoteSD.sdp)
-                    await peerConnection.setRemoteDescription(remoteSD)
-                }catch(err){
-                    setError(err)
-                }
-            }
-        }
+					await peerConnection.setRemoteDescription(remoteSD)
+				} catch (err) {
+					setError(err)
+				}
+			}
+		}
 		setSDP()
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	},[remoteSD])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [remoteSD])
 
-	useEffect(()=>{
-		if(peerConnection ){
-			if(iceConnectionState === "disconnected" || iceConnectionState ==="failed"){
+	useEffect(() => {
+		if (peerConnection) {
+			if (iceConnectionState === "disconnected" || iceConnectionState === "failed") {
 				reset()
 			}
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	},[iceConnectionState])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [iceConnectionState])
 
-	useEffect(()=>{
-		if(peerConnection && connectionState ==="failed"){
+	useEffect(() => {
+		if (peerConnection && connectionState === "failed") {
 			reset()
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	},[connectionState])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [connectionState])
 
-	useEffect(()=>{
-		if(peerConnection && signalingState ==="closed"){
+	useEffect(() => {
+		if (peerConnection && signalingState === "closed") {
 			reset()
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	},[signalingState])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [signalingState])
 
-	async function createPeerConnection(){
-		if(!peerConnection){
+	async function createPeerConnection() {
+		if (!peerConnection) {
 			const peer = new RTCPeerConnection(iceServerConfig)
 
 			// observer state handlers
-			peer.onsignalingstatechange= ():void=>{
+			peer.onsignalingstatechange = (): void => {
 				setSignalingState(peer.signalingState)
 			}
 
-			peer.onconnectionstatechange = ():void =>{
+			peer.onconnectionstatechange = (): void => {
 				setConnectionState(peer.connectionState)
 			}
 
-			peer.oniceconnectionstatechange = (): void =>{
+			peer.oniceconnectionstatechange = (): void => {
 				setIceConnectionState(peer.iceConnectionState)
 			}
 
-			peer.ontrack= (e:RTCTrackEvent): void =>{
-				setRemoteStream(e.streams[0])
+			peer.ontrack = (e: RTCTrackEvent): void => {
+				if (e.streams && e.streams[0]) {
+					setRemoteStream(e.streams[0])
+				} else {
+					const newStream = new MediaStream()
+					newStream.addTrack(e.track)
+					setRemoteStream(newStream)
+				}
 			}
-			try{
+			try {
 				peer.addTransceiver("video", {
 					direction: "sendrecv"
 				})
-				
+
 				let offer = await peer.createOffer()
 				await peer.setLocalDescription(offer)
-				await new Promise<void>( resolve => {
-					if( peer.iceGatheringState === "complete"){
+				await new Promise<void>(resolve => {
+					if (peer.iceGatheringState === "complete") {
 						resolve()
-					}else{
-						const checkState = () =>{
-							if (peer.iceGatheringState === "complete"){
+					} else {
+						const checkState = () => {
+							if (peer.iceGatheringState === "complete") {
 								peer.removeEventListener("icegatheringstatechange", checkState)
 								resolve()
 							}
@@ -112,7 +118,7 @@ export function useWebRTC(){
 						peer.addEventListener("icegatheringstatechange", checkState)
 					}
 				})
-			}catch(error){
+			} catch (error) {
 				setError(error)
 			}
 			setPeerConnection(peer)
@@ -121,19 +127,19 @@ export function useWebRTC(){
 		}
 	}
 
-	function addRemoteSD(sd: RTCSessionDescription){
+	function addRemoteSD(sd: RTCSessionDescription) {
 		setRemoteSD(sd)
 	}
 
-	function closeConnection(){
-			reset()
+	function closeConnection() {
+		reset()
 	}
-	
-	function reset(){
-		if(peerConnection){
+
+	function reset() {
+		if (peerConnection) {
 			peerConnection.onsignalingstatechange = null
 			peerConnection.oniceconnectionstatechange = null
-			peerConnection.onconnectionstatechange= null
+			peerConnection.onconnectionstatechange = null
 			peerConnection.ontrack = null
 			peerConnection.close()
 			setPeerConnection(undefined)
@@ -142,10 +148,10 @@ export function useWebRTC(){
 		}
 	}
 
-	return{
+	return {
 		peer: peerConnection,
 		stream: remoteStream,
-		localSD:localSD,
+		localSD: localSD,
 		error: error,
 		createPeerConnection: createPeerConnection,
 		addRemoteSD: addRemoteSD,

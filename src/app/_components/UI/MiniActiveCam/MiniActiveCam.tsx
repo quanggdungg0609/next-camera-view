@@ -3,26 +3,26 @@ import { useInfoStore } from '@/app/_zustand/useInfoStore'
 import { useWebSocketStore } from '@/app/_zustand/useWebSocketStore'
 import React, { ReactElement, useEffect, useRef, useState } from 'react'
 
-function MiniActiveCam(props:{activeCam: ICameraInfo}):ReactElement {
-    const {uuid, location, name} = props.activeCam
+function MiniActiveCam(props: { activeCam: ICameraInfo }): ReactElement {
+    const { uuid, location, name } = props.activeCam
 
     const webSocketStore = useWebSocketStore()
     const infoStore = useInfoStore()
 
-    const {createPeerConnection, addRemoteSD, closeConnection, stream, localSD} = useWebRTC()
+    const { createPeerConnection, addRemoteSD, closeConnection, stream, localSD } = useWebRTC()
 
     const [activeCam, setActiveCam] = useState<ICameraInfo>()
 
     const videoRef = useRef<HTMLVideoElement>(null)
 
-    useEffect(()=>{
+    useEffect(() => {
         const webSocketSubcription = webSocketStore.subject.subscribe(
-            async (message)=>{
-                switch(message.event){
+            async (message) => {
+                switch (message.event) {
                     case "answer-sd":
-                        const  answerSd:RTCSessionDescription = new RTCSessionDescription(
+                        const answerSd: RTCSessionDescription = new RTCSessionDescription(
                             {
-                                type: message.data.type, 
+                                type: message.data.type,
                                 sdp: message.data.sdp,
                             }
                         )
@@ -35,57 +35,58 @@ function MiniActiveCam(props:{activeCam: ICameraInfo}):ReactElement {
         )
         setActiveCam(props.activeCam)
 
-        return ()=>{
+        return () => {
             webSocketSubcription.unsubscribe()
         }
-    },[])
+    }, [])
 
 
-    useEffect(()=>{
+    useEffect(() => {
 
-        if(stream && videoRef.current){
-            
+        if (stream && videoRef.current) {
+
             videoRef.current.srcObject = stream
 
             videoRef.current.play()
-        }else if(!stream && videoRef.current){
-            videoRef.current.srcObject=null
+        } else if (!stream && videoRef.current) {
+            videoRef.current.srcObject = null
         }
-    },[stream])
+    }, [stream])
 
-    useEffect(()=>{
-        async function handleActiveStreamState(){
+    useEffect(() => {
+        async function handleActiveStreamState() {
             await createPeerConnection()
         }
-        if(activeCam){
+        if (activeCam) {
             handleActiveStreamState()
         }
-    },[activeCam])
+    }, [activeCam])
 
-    useEffect(()=>{
-        if(localSD){
+    useEffect(() => {
+        if (localSD) {
             webSocketStore.send({
-                event:"offer-sd",
-                data:{
+                event: "offer-sd",
+                data: {
                     uuid: infoStore.uuid,
                     to: uuid,
-                        type: localSD?.type,
-                        sdp: localSD?.sdp
+                    type: localSD?.type,
+                    sdp: localSD?.sdp
                 }
             })
         }
-    },[localSD])
+    }, [localSD])
 
     return (
-            
-                <video
-                    ref={videoRef}
-                    autoPlay={true}
-                    muted={true}
-                    playsInline
-                    className='object-fill w-full rounded-lg drop-shadow-md'
-                />
-            
+
+        <video
+            ref={videoRef}
+            autoPlay={true}
+            muted={true}
+            controls={true}
+            playsInline
+            className='object-fill w-full aspect-video bg-black rounded-lg drop-shadow-md'
+        />
+
     )
 }
 
