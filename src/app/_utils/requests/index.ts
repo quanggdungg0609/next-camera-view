@@ -2,14 +2,14 @@
 import axios from "axios"
 import { cookies } from "next/headers"
 import getConfig from 'next/config';
-import { SessionExpired, TokenNotFound} from "../exceptions"
+import { SessionExpired, TokenNotFound } from "../exceptions"
 import { InfoResponse, ResponseError, ResponsePagination } from "@/app/_types/response.type";
 import { NextResponse } from "next/server";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Router, useRouter } from "next/router";
 import { Gache, OpenDoorResponse } from "@/app/_types/gache.type";
 import { redirect } from "next/navigation";
-const { serverRuntimeConfig }= getConfig()
+const { serverRuntimeConfig } = getConfig()
 
 
 // axios configs
@@ -19,26 +19,26 @@ const axiosInstanceWithAccessToken = axios.create({
 
 
 axiosInstanceWithAccessToken.interceptors.request.use(
-    async (config)=>{
+    async (config) => {
         const cookiesStore = cookies()
         const accessToken = cookiesStore.get("access")?.value
-        if (accessToken){
+        if (accessToken) {
             config.headers["Authorization"] = `Bearer ${accessToken}`
-        }else{
-            try{
+        } else {
+            try {
                 console.log("Get new token")
                 const accessToken = await getNewAccesToken()
                 config.headers["Authorization"] = `Bearer ${accessToken}`
-            }catch(exception){
+            } catch (exception) {
                 throw exception
             }
         }
         return config
     },
-    
-    async (error)=>{
+
+    async (error) => {
         console.error(error)
-        if(error instanceof TokenNotFound){
+        if (error instanceof TokenNotFound) {
             console.error("token not found")
         }
         throw error
@@ -46,14 +46,14 @@ axiosInstanceWithAccessToken.interceptors.request.use(
 )
 
 // * Login request
-export async function loginRequest(account: string, password: string){
-    try{
-        
-        const res = await axios.post(`${serverRuntimeConfig.API_URI}/auth/login/`,{
+export async function loginRequest(account: string, password: string) {
+    try {
+
+        const res = await axios.post(`${serverRuntimeConfig.API_URI}/auth/login/`, {
             username: account,
             password: password
         })
-        if(res.status === 200){
+        if (res.status === 200) {
             const { refresh, access, user } = res.data
             const accessExpiryDate = new Date();
             accessExpiryDate.setMinutes(accessExpiryDate.getMinutes() + 15);
@@ -61,20 +61,20 @@ export async function loginRequest(account: string, password: string){
             const refreshExpiryDate = new Date();
             refreshExpiryDate.setDate(refreshExpiryDate.getDate() + 1);
             cookies().set({
-                name:"access",
+                name: "access",
                 value: access,
-                httpOnly:true,
-                expires:accessExpiryDate
+                httpOnly: true,
+                expires: accessExpiryDate
             })
             cookies().set({
-                name:"refresh",
+                name: "refresh",
                 value: refresh,
-                httpOnly:true,
-                expires:refreshExpiryDate
+                httpOnly: true,
+                expires: refreshExpiryDate
             })
 
             cookies().set({
-                name:"role",
+                name: "role",
                 value: user.role,
                 httpOnly: true
             })
@@ -84,25 +84,28 @@ export async function loginRequest(account: string, password: string){
                 role: user.role
             }
         }
-    }catch(exception){
+    } catch (exception) {
         if (axios.isAxiosError(exception)) {
-            const message = exception.response?.data.detail
+            const message = exception.response?.data?.detail || exception.message || "An error occurred during login";
             return {
                 error: message,
             };
-        }else{
+        } else {
             console.error(exception)
+            return {
+                error: "An unexpected error occurred"
+            }
         }
     }
 }
 
 
 // * Get user info
-export async function getMyInfo(){
-    try{
+export async function getMyInfo() {
+    try {
         const response = await axiosInstanceWithAccessToken.get("/auth/get-my-info/")
-        if(response.status === 200){
-            const {username, role, email, firstName, lastName} = response.data
+        if (response.status === 200) {
+            const { username, role, email, firstName, lastName } = response.data
             return {
                 username,
                 role,
@@ -111,14 +114,14 @@ export async function getMyInfo(){
                 lastName,
             }
         }
-    }catch(exception){
+    } catch (exception) {
         if (axios.isAxiosError(exception)) {
 
             const message = exception.response?.data
             return {
                 error: message,
             };
-        }else{
+        } else {
             console.error(exception)
         }
     }
@@ -126,35 +129,35 @@ export async function getMyInfo(){
 
 
 // * Get new access token
-async function getNewAccesToken(){
-    try{
-        const cookiesStore =  cookies()
+async function getNewAccesToken() {
+    try {
+        const cookiesStore = cookies()
         const refreshToken = cookiesStore.get("refresh")?.value
-        const response = await axios.post(`${serverRuntimeConfig.API_URI}/auth/refresh/`,{
+        const response = await axios.post(`${serverRuntimeConfig.API_URI}/auth/refresh/`, {
             "refresh": refreshToken
-        })       
-        if(response.status === 200){
-            const {access} = response.data
+        })
+        if (response.status === 200) {
+            const { access } = response.data
             // update new access Token
             const accessExpiryDate = new Date();
             accessExpiryDate.setMinutes(accessExpiryDate.getMinutes() + 15);
             cookiesStore.set({
-                name:"access",
+                name: "access",
                 value: access,
-                httpOnly:true,
-                expires:accessExpiryDate
+                httpOnly: true,
+                expires: accessExpiryDate
             })
             return access
-        }else{
+        } else {
             throw new SessionExpired()
         }
 
-    }catch(exception){
-        if (axios.isAxiosError(exception)){
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
             console.log(exception.code)
             console.log(exception.toJSON())
         }
-        if(exception instanceof SessionExpired){
+        if (exception instanceof SessionExpired) {
             console.log(exception.name)
             throw exception
         }
@@ -162,22 +165,22 @@ async function getNewAccesToken(){
 }
 
 // * Register request
-export async function registerRequests(username: string, email: string, password:string){
+export async function registerRequests(username: string, email: string, password: string) {
     // * Make a register request to server
-    try{
-        const response = await axios.post(`${serverRuntimeConfig.API_URI}/api/auth/signup`,{
+    try {
+        const response = await axios.post(`${serverRuntimeConfig.API_URI}/api/auth/signup`, {
             username: username,
-            email:email,
+            email: email,
             password: password
         })
 
-        if(response.status===201){
+        if (response.status === 201) {
             return {
                 message: response.data.message
             }
         }
-    }catch(exception){
-        if (axios.isAxiosError(exception)){
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
             const message = exception.response?.data.message
             return {
                 error: message
@@ -187,14 +190,14 @@ export async function registerRequests(username: string, email: string, password
 }
 
 // * get list of cameras
-export async function getListCameraMedia(){
-    try{
+export async function getListCameraMedia() {
+    try {
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-cameras/`)
-        if (response.status === 200){
+        if (response.status === 200) {
             return response.data
         }
-    }catch(exception){
-        if (axios.isAxiosError(exception)){
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
             const message = exception.response?.data.message
             return {
                 error: message
@@ -204,12 +207,12 @@ export async function getListCameraMedia(){
 }
 
 // * get list of image names
-export async function getListImageNames(cameraUuid: string, pageNumber:number = 1, limit:number = 8 ){
-    try{
+export async function getListImageNames(cameraUuid: string, pageNumber: number = 1, limit: number = 8) {
+    try {
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-images?uuid=${cameraUuid}&page=${pageNumber}&limit=${limit}`)
-        if (response.status === 200){
-            const {page, nextPage, prevPage, totalPage, totalItem, files} = response.data
-            const res: ResponsePagination<string> ={
+        if (response.status === 200) {
+            const { page, nextPage, prevPage, totalPage, totalItem, files } = response.data
+            const res: ResponsePagination<string> = {
                 page: page,
                 nextPage: nextPage,
                 prevPage: prevPage,
@@ -218,12 +221,12 @@ export async function getListImageNames(cameraUuid: string, pageNumber:number = 
                 list: files,
             }
             return res
-        } 
-    }catch(e){
-        if(axios.isAxiosError(e)){
+        }
+    } catch (e) {
+        if (axios.isAxiosError(e)) {
             const message = e.response?.data.message
-            const response: ResponseError={
-                error:message
+            const response: ResponseError = {
+                error: message
             }
             return response
         }
@@ -231,24 +234,24 @@ export async function getListImageNames(cameraUuid: string, pageNumber:number = 
 }
 
 // * Get list of preview image urls
-export async function getListPreviewImages(uuid:string, imageNames: Array<string>) {
-    try{
+export async function getListPreviewImages(uuid: string, imageNames: Array<string>) {
+    try {
         const params = new URLSearchParams()
         params.append("uuid", uuid)
-        for (const imageName of imageNames){
-            params.append("image_names",imageName)
+        for (const imageName of imageNames) {
+            params.append("image_names", imageName)
         }
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-multiple-images?${params.toString()}`)
-        if(response.status === 200){
-            const result: Array<string> =response.data.preview_urls
+        if (response.status === 200) {
+            const result: Array<string> = response.data.preview_urls
             return result
         }
-    }catch(exception){
-        if (axios.isAxiosError(exception)){
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
             console.error(exception.message)
             const message = exception.response?.data.message
-            const response: ResponseError={
-                error:message
+            const response: ResponseError = {
+                error: message
             }
             return response
         }
@@ -256,24 +259,24 @@ export async function getListPreviewImages(uuid:string, imageNames: Array<string
 }
 
 // * Get list of image infos
-export async function getListImageInfos(uuid:string, imageNames: Array<string>){
-    try{
+export async function getListImageInfos(uuid: string, imageNames: Array<string>) {
+    try {
         const params = new URLSearchParams()
         params.append("uuid", uuid)
-        for(const imageName of imageNames){
+        for (const imageName of imageNames) {
             params.append("image_names", imageName)
         }
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-image-infos?${params.toString()}`)
-        if(response.status === 200){
+        if (response.status === 200) {
             const result: Array<InfoResponse> = response.data.image_infos
             return result
         }
-    }catch(exception){
-        if (axios.isAxiosError(exception)){
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
             console.error(exception.request.data)
             const message = exception.response?.data.message
-            const response: ResponseError={
-                error:message
+            const response: ResponseError = {
+                error: message
             }
             return response
         }
@@ -282,27 +285,27 @@ export async function getListImageInfos(uuid:string, imageNames: Array<string>){
 
 
 // * Get list of video names
-export async function getListVideoNames(uuid:string, pageNumber:number = 1, limit:number = 8 ){
-    try{
+export async function getListVideoNames(uuid: string, pageNumber: number = 1, limit: number = 8) {
+    try {
         const params = new URLSearchParams()
         params.append("uuid", uuid)
         params.append("page", pageNumber.toString())
         params.append("limit", limit.toString())
 
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-videos?${params.toString()}`)
-        if(response.status === 200){
-            const {page, nextPage, prevPage, totalPage, totalItem, files} = response.data
-            const result:ResponsePagination<string> = {
+        if (response.status === 200) {
+            const { page, nextPage, prevPage, totalPage, totalItem, files } = response.data
+            const result: ResponsePagination<string> = {
                 page, nextPage, prevPage, totalPage, totalItem, list: files
             }
             return result
         }
-    }catch(exception){
-        if (axios.isAxiosError(exception)){
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
             console.error(exception.request.data)
             const message = exception.response?.data.message
-            const response: ResponseError={
-                error:message
+            const response: ResponseError = {
+                error: message
             }
             return response
         }
@@ -311,24 +314,24 @@ export async function getListVideoNames(uuid:string, pageNumber:number = 1, limi
 
 
 // * Get list thumbnail video urls
-export async function getListThumbnails(uuid:string, videoNames:Array<string>){
-    try{
+export async function getListThumbnails(uuid: string, videoNames: Array<string>) {
+    try {
         const params = new URLSearchParams()
         params.append("uuid", uuid)
-        for (const videoName of videoNames){
-            params.append("video_names",videoName)
+        for (const videoName of videoNames) {
+            params.append("video_names", videoName)
         }
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-list-thumbnails?${params.toString()}`)
-        if(response.status === 200){
-            const thumbnails: Array<string> =response.data.thumbnails
+        if (response.status === 200) {
+            const thumbnails: Array<string> = response.data.thumbnails
             return thumbnails
         }
-    }catch(exception){
-        if (axios.isAxiosError(exception)){
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
             console.error(exception.request.data)
             const message = exception.response?.data.message
-            const response: ResponseError={
-                error:message
+            const response: ResponseError = {
+                error: message
             }
             return response
         }
@@ -337,25 +340,25 @@ export async function getListThumbnails(uuid:string, videoNames:Array<string>){
 
 
 // * Get list video infos
-export async function getListVideoInfos(uuid:string, videoNames: Array<string>){
-    try{
+export async function getListVideoInfos(uuid: string, videoNames: Array<string>) {
+    try {
         const params = new URLSearchParams()
         params.append("uuid", uuid)
-        for (const videoName of videoNames){
+        for (const videoName of videoNames) {
             params.append("video_names", videoName)
         }
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-list-video-infos/?${params.toString()}`)
-        if (response.status === 200){
+        if (response.status === 200) {
             const infos: Array<InfoResponse> = response.data.video_infos
             return infos
         }
 
-    }catch(exception){
-        if (axios.isAxiosError(exception)){
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
             console.error(exception.request.data)
             const message = exception.response?.data.message
-            const response: ResponseError={
-                error:message
+            const response: ResponseError = {
+                error: message
             }
             return response
         }
@@ -364,49 +367,49 @@ export async function getListVideoInfos(uuid:string, videoNames: Array<string>){
 
 
 // * Get list video preview urls
-export async function getListVideoPreviews(uuid: string, videoNames:Array<string>){
-    try{
+export async function getListVideoPreviews(uuid: string, videoNames: Array<string>) {
+    try {
         const params = new URLSearchParams()
         params.append("uuid", uuid)
-        for (const videoName of videoNames){
+        for (const videoName of videoNames) {
             params.append("video_names", videoName)
         }
 
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/files/get-list-video-previews/?${params.toString()}`)
 
-        if(response.status === 200){
+        if (response.status === 200) {
             const previewUrls: Array<string> = response.data.preview_urls
             return previewUrls
         }
-    }catch(exception){
-        if (axios.isAxiosError(exception)){
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
             console.error(exception.request.data)
             const message = exception.response?.data.message
-            const response: ResponseError={
-                error:message
+            const response: ResponseError = {
+                error: message
             }
             return response
         }
     }
 }
 
-export async function getOnetimeID(){
-    try{
+export async function getOnetimeID() {
+    try {
         const response = await axiosInstanceWithAccessToken.get(`${serverRuntimeConfig.API_URI}/auth/get-onetime-id/`)
-        if(response.status === 200){
-            const {onetime_id} = response.data
+        if (response.status === 200) {
+            const { onetime_id } = response.data
             console.log(response.data)
             return {
                 onetimeId: onetime_id,
-                url:`${serverRuntimeConfig.API_URI}/auth/redirect-admin/`
+                url: `${serverRuntimeConfig.API_URI}/auth/redirect-admin/`
             }
         }
-    }catch(exception){
-        if (axios.isAxiosError(exception)){
+    } catch (exception) {
+        if (axios.isAxiosError(exception)) {
             console.error(exception.request.data)
             const message = exception.response?.data.message
-            const response: ResponseError={
-                error:message
+            const response: ResponseError = {
+                error: message
             }
             return response
         }
@@ -474,13 +477,13 @@ export async function openDoor(id: number): Promise<OpenDoorResponse | ResponseE
 
 
 
-export async function logout(){
-    try{
-        const cookieStore =cookies()
+export async function logout() {
+    try {
+        const cookieStore = cookies()
         cookieStore.delete("access")
         cookieStore.delete("refresh")
         cookieStore.delete("role")
-    }catch(exception){
+    } catch (exception) {
         console.error(exception)
     }
 }
